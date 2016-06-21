@@ -155,28 +155,28 @@ $moduleConfig = array (
     ),
     'controllers'=>array(
         'invokables'=>array(
-            'Magento\Controller\Console'=>'Magento\Controller\Console',
+            'Magento2\Controller\Console'=>'Magento2\Controller\Console',
         ),
     ),
     'service_manager'=>array(
         'invokables'=>array(
-            'magento2_rest'=>'Magento2\Api\RestV1',
+            'magento2_restV1'=>'Magento2\Api\RestV1',
             'magento2_db'=>'Magento2\Api\Db',
             'magentoService'=>'Magento2\Service\MagentoService',
             'magentoConfigService'=>'Magento2\Service\MagentoConfigService',
             //'transform_order_total'=>'Magento\Transform\OrderTotalTransform'
         ),
         'shared'=>array(
-            'magento2_rest'=>FALSE,
+            'magento2_restV1'=>FALSE,
             'magento2_db'=>FALSE
         )
     ),
     'console'=>array(
         'router'=>array(
             'routes'=>array(
-                'magento-console'=>array(
+                'magento2-console'=>array(
                     'options'=>array(
-                        'route'=>'magento <task> <id> [<params>]',
+                        'route'=>'magento2 <task> <id> [<params>]',
                         'defaults'=>array(
                             'controller'=>'Magento2\Controller\Console',
                             'action'=>'run'
@@ -189,4 +189,3 @@ $moduleConfig = array (
 );
 
 return $moduleConfig;
-?>
