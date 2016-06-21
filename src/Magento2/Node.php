@@ -78,7 +78,7 @@ class Node extends AbstractNode
             if (!$restV1) {
                 throw new SyncException('Failed to initialize RESTv1 api for store view fetch');
             }else{
-/** ToDo */
+/** @todo */
                 /** @var \Magento2\Api|RestV1 $restV1 */
                 $response = $restV1->call('store/storeViews', array());
                 if (count($response)) {
@@ -215,7 +215,7 @@ class Node extends AbstractNode
             case 'order':
                 $gateway = new Gateway\OrderGateway;
                 break;
-            // ToDo: Check whether this is replaceable by the product gateway
+            // @todo: Check whether this is replaceable by the product gateway
             case 'stockitem':
                 $gateway = new Gateway\StockGateway;
                 break;

@@ -480,7 +480,7 @@ class Db implements ServiceLocatorAwareInterface
     public function getNewsletterStatus($customerId)
     {
         $subscribed = FALSE;
-        // ToDo: Implement proper use of Zend functionality
+        // @todo: Implement proper use of Zend functionality
         $sql = "SELECT subscriber_id FROM newsletter_subscriber WHERE customer_id = ".$customerId
             ." AND subscriber_status IN (1, 4)";
         $this->debugSql($sql);
@@ -504,7 +504,7 @@ class Db implements ServiceLocatorAwareInterface
      */
     public function getChangedEntityIds($entityType, $changedSince)
     {
-        // ToDo: Implement proper use of Zend functionality
+        // @todo: Implement proper use of Zend functionality
         $sql = "SELECT entity_id FROM ".$this->getEntityPrefix($entityType)."_entity"
             ." WHERE updated_at >= '".$changedSince."';";
 
@@ -555,7 +555,6 @@ class Db implements ServiceLocatorAwareInterface
 
     /**
      * Update an entity in the Magento2 EAV system
-     *
      * @todo Untested on multi-select / option type attributes.
      * @param string $entityType
      * @param int $entityId
@@ -865,7 +864,7 @@ class Db implements ServiceLocatorAwareInterface
 
             $attribute = $this->getAttribute($entityType, $code);
             if ($attribute == NULL) {
-                // ToDo : throw new MagelinkException('Invalid Magento2 attribute code ' . $code . ' for ' . $entityType);
+                // @todo : throw new MagelinkException('Invalid Magento2 attribute code ' . $code . ' for ' . $entityType);
             }else{
                 $table = $this->getAttributeTable($prefix, $attribute);
 
@@ -919,7 +918,7 @@ class Db implements ServiceLocatorAwareInterface
             case 'rma_item':
                 return 'enterprise_rma_item';
             default:
-                // ToDo: Check : Maybe warn? This should be a safe default
+                // @todo: Check : Maybe warn? This should be a safe default
                 return $entityType;
         }
     }

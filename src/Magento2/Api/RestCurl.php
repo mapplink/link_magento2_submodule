@@ -96,7 +96,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     {
         $url = $this->node->getConfig('web_url').static::REST_BASE_URI.$callType;
         if (count($parameters) > 0) {
-            // ToDo include parameters
+            // @todo include parameters
         }
 
         return $url;
@@ -252,7 +252,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     public function deleteCall($callType)
     {
         $response = $this->call('DELETE', $callType);
-        // ToDo
+        // @todo
         return $response;
     }
 
@@ -264,8 +264,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     public function getCall($callType, array $parameters = array())
     {
         $response = $this->call('GET', $callType, $parameters);
-        // ToDo
-        return $response;
+        return $response['items'];
     }
 
     /**
@@ -276,7 +275,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     public function postCall($callType, array $parameters = array())
     {
         $response = $this->call('POST', $callType, $parameters);
-        // ToDo
+        // @todo
         return $response;
     }
 
@@ -288,7 +287,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     public function putCall($callType, array $parameters = array())
     {
         $response = $this->call('PUT', $callType, $parameters);
-        // ToDo
+        // @todo
         return $response;
     }
 
@@ -345,7 +344,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
                     $logData = array('key'=>$key, 'escapedKey'=>$escapedKey, 'value'=>$value, 'fields'=>$urlfields);
                     $this->getServiceLocator()->get('logService')
                         ->log(LogService::LEVEL_ERROR, $logCode, $logMessage, $logData);
-                    /** ToDo */
+                    /** @todo */
                     throw new MagelinkException($logMessage);
                     $urlParameters = array();
                     break;
