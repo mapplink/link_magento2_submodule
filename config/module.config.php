@@ -84,11 +84,6 @@ $moduleConfig = array (
                     'required'=>FALSE
                 ),
 
-                'load_full_product'=>array(
-                    'label'=>'Load full product data?',
-                    'type'=>'Checkbox',
-                    'default'=>FALSE
-                ),
                 'load_stock'=>array(
                     'label'=>'Load stock data? (SLOW)',
                     'type'=>'Checkbox',
@@ -162,9 +157,9 @@ $moduleConfig = array (
         'invokables'=>array(
             'magento2_restV1'=>'Magento2\Api\RestV1',
             'magento2_db'=>'Magento2\Api\Db',
-            'magentoService'=>'Magento2\Service\MagentoService',
-            'magentoConfigService'=>'Magento2\Service\MagentoConfigService',
-            //'transform_order_total'=>'Magento\Transform\OrderTotalTransform'
+            'magento2Service'=>'Magento2\Service\Magento2Service',
+            'magento2ConfigService'=>'Magento2\Service\Magento2ConfigService',
+            //'transform_order_total'=>'Magento2\Transform\OrderTotalTransform'
         ),
         'shared'=>array(
             'magento2_restV1'=>FALSE,
