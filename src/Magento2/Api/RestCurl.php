@@ -222,7 +222,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      * @param string $method
      * @param string $callType
      * @param array $parameters
-     * @return mixed $curlExecReturn
+     * @return mixed $response
      */
     protected function call($httpMethod, $callType, array $parameters = array())
     {
@@ -241,6 +241,12 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
         $this->$method($parameters);
 
         $response = $this->executeCurl('call');
+
+        try {
+            $response = json_decode($response);
+        }catch(\Exception $exception) {
+            // @todo: logException
+        }
 
         return $response;
     }
@@ -264,7 +270,12 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     public function getCall($callType, array $parameters = array())
     {
         $response = $this->call('GET', $callType, $parameters);
-        return $response['items'];
+
+        if (is_array($response) && array_key_exists('items', $response)) {
+            $response = $response['items'];
+        }
+
+        return $response;
     }
 
     /**
