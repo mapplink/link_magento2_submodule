@@ -74,18 +74,13 @@ class Node extends AbstractNode
     public function getStoreViews()
     {
         if ($this->storeViews === NULL) {
+            /** @var \Magento2\Api\RestV1 $restV1 */
             $restV1 = $this->getApi('restV1');
             if (!$restV1) {
                 throw new SyncException('Failed to initialize RESTv1 api for store view fetch');
             }else{
-/** @todo */
-                /** @var \Magento2\Api|RestV1 $restV1 */
-                $response = $restV1->call('store/storeViews', array());
-                if (count($response)) {
-                    if (isset($response['result'])) {
-                        $response = $response['result'];
-                    }
-
+                $response = $restV1->getCall('store/storeViews', array());
+                if (count($response) > 0) {
                     $this->storeViews = array();
                     foreach ($response as $storeView) {
                         $this->storeViews[$storeView['store_id']] = $storeView;
