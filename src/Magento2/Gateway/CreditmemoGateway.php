@@ -214,7 +214,7 @@ class CreditmemoGateway extends AbstractGateway
                     $this->getServiceLocator()->get('logService')
                         ->log($logLevel, $logCode, $logMessage, $logData, array('creditmemo unique id'=>$uniqueId));
 
-                    $this->createItems($creditmemo, $existingEntity->getId(), $this->_entityService, FALSE);
+                    $this->createItems($creditmemo, $existingEntity->getId(), FALSE);
                 }else{
                     $this->_entityService->beginEntityTransaction('magento2-creditmemo-'.$uniqueId);
                     try{
@@ -225,7 +225,7 @@ class CreditmemoGateway extends AbstractGateway
                             ->log(LogService::LEVEL_INFO, $this->getLogCode().'_new', 'New creditmemo '.$uniqueId,
                                 $logData, array('node'=>$this->_node, 'creditmemo'=>$existingEntity));
 
-                        $this->createItems($creditmemo, $existingEntity->getId(), $this->_entityService, TRUE);
+                        $this->createItems($creditmemo, $existingEntity->getId(), TRUE);
                         $this->_entityService->commitEntityTransaction('magento2-creditmemo-'.$uniqueId);
                     }catch (\Exception $exception) {
                         $this->_entityService->rollbackEntityTransaction('magento2-creditmemo-'.$uniqueId);
@@ -286,10 +286,9 @@ class CreditmemoGateway extends AbstractGateway
      * Create all the Creditmemoitem entities for a given creditmemo
      * @param array $creditmemo
      * @param string $orderId
-     * @param EntityService $this->_entityService
      * @param bool $creationMode Whether this is for a newly created credit memo in magelink
      */
-    protected function createItems(array $creditmemo, $orderId, EntityService $this->_entityService, $creationMode){
+    protected function createItems(array $creditmemo, $orderId, $creationMode){
 
         $parentId = $orderId;
 
