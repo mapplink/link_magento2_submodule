@@ -68,11 +68,6 @@ class CustomerGateway extends AbstractGateway
      */
     public function retrieveEntities()
     {
-        /** @var \Entity\Service\EntityService $entityService */
-        $entityService = $this->getServiceLocator()->get('entityService');
-        /** @var \Entity\Service\EntityConfigService $entityConfigService */
-        $entityConfigService = $this->getServiceLocator()->get('entityConfigService');
-
         $this->getServiceLocator()->get('logService')
             ->log(LogService::LEVEL_INFO,
                 $this->getLogCode().'_re_time',
@@ -107,8 +102,8 @@ class CustomerGateway extends AbstractGateway
                 $specialAtt = false;
             }else{
                 $specialAtt = trim(strtolower($specialAtt));
-                if (!$entityConfigService->checkAttribute('customer', $specialAtt)) {
-                    $entityConfigService->createAttribute(
+                if (!$this->entityConfigService->checkAttribute('customer', $specialAtt)) {
+                    $this->entityConfigService->createAttribute(
                         $specialAtt, $specialAtt, 0, 'varchar', 'customer', 'Custom Magento2 attribute (special - taxvat)');
                     $this->getServiceLocator()->get('nodeService')
                         ->subscribeAttribute($this->_node->getNodeId(), $specialAtt, 'customer');
@@ -128,8 +123,8 @@ class CustomerGateway extends AbstractGateway
                 if (!strlen($attributeCode)) {
                     unset($additionalAttributes[$k]);
                 }else{
-                    if (!$entityConfigService->checkAttribute('customer', $attributeCode)) {
-                        $entityConfigService->createAttribute(
+                    if (!$this->entityConfigService->checkAttribute('customer', $attributeCode)) {
+                        $this->entityConfigService->createAttribute(
                             $attributeCode, $attributeCode, 0, 'varchar', 'customer', 'Custom Magento2 attribute');
                         $this->getServiceLocator()->get('nodeService')
                             ->subscribeAttribute($this->_node->getNodeId(), $attributeCode, 'customer');
