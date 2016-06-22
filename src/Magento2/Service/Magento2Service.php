@@ -184,4 +184,29 @@ class Magento2Service implements ServiceLocatorAwareInterface
         return $mappedProductData;
     }
 
+    /**
+     * @param array $data
+     * @param float $baseToCurrencyRate
+     * @return array
+     */
+    protected function addCurrencyFromBase(array $data, $baseToCurrencyRate)
+    {
+        $newData = array();
+
+        foreach ($data as $key=>$value) {
+            if (is_array($value)) {
+                $value = $this->addCurrencyFromBase($value, $baseToCurrencyRate);
+            }
+
+            $newData[$key] = $value;
+
+            if (strpos($key, 'base_') === 0) {
+                $newKey = str_replace('base_', '', $key);
+                $newData[$newKey] = $value * $baseToCurrencyRate;
+            }
+        }
+
+        return $newData;
+    }
+
 }
