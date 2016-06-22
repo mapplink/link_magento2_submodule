@@ -52,11 +52,6 @@ class CreditmemoGateway extends AbstractGateway
      */
     public function retrieveEntities()
     {
-        /** @var \Entity\Service\EntityService $entityService */
-        $entityService = $this->getServiceLocator()->get('entityService');
-        /** @var \Entity\Service\EntityConfigService $entityConfigService */
-        $entityConfigService = $this->getServiceLocator()->get('entityConfigService');
-
         $this->getServiceLocator()->get('logService')
             ->log(LogService::LEVEL_INFO,
                 $this->getLogCode().'_re_time',
@@ -92,7 +87,7 @@ class CreditmemoGateway extends AbstractGateway
                 $localId = $creditmemo['creditmemo_id'];
                 $parentId = NULL;
                 /** @var Creditmemo $existingEntity */
-                $existingEntity = $entityService
+                $existingEntity = $this->_entityService
                     ->loadEntityLocal($this->_node->getNodeId(), 'creditmemo', $storeId, $localId);
 
                 if ($existingEntity) {
@@ -101,7 +96,7 @@ class CreditmemoGateway extends AbstractGateway
                     $logCode = $this->getLogCode().'_re_upd';
                     $logMessage = 'Updated creditmemo '.$uniqueId.'.';
                 }else{
-                    $existingEntity = $entityService->loadEntity(
+                    $existingEntity = $this->_entityService->loadEntity(
                         $this->_node->getNodeId(), 'creditmemo', $storeId, $uniqueId);
 
                     $noLocalId = TRUE;
@@ -152,7 +147,7 @@ class CreditmemoGateway extends AbstractGateway
                 }
 
                 if (isset($creditmemo['billing_address_id']) && $creditmemo['billing_address_id']) {
-                    $billingAddress = $entityService->loadEntityLocal(
+                    $billingAddress = $this->_entityService->loadEntityLocal(
                         $this->_node->getNodeId(), 'address', $storeId, $creditmemo['billing_address_id']);
                     if($billingAddress && $billingAddress->getId()){
                         $data['billing_address'] = $billingAddress;
@@ -162,7 +157,7 @@ class CreditmemoGateway extends AbstractGateway
                 }
 
                 if (isset($creditmemo['shipping_address_id']) && $creditmemo['shipping_address_id']) {
-                    $shippingAddress = $entityService->loadEntityLocal(
+                    $shippingAddress = $this->_entityService->loadEntityLocal(
                         $this->_node->getNodeId(), 'address', $storeId, $creditmemo['shipping_address_id']);
                     if($shippingAddress && $shippingAddress->getId()){
                         $data['shipping_address'] = $shippingAddress;
@@ -172,7 +167,7 @@ class CreditmemoGateway extends AbstractGateway
                 }
 
                 if (isset($creditmemo['order_id']) && $creditmemo['order_id']) {
-                    $order = $entityService->loadEntityLocal(
+                    $order = $this->_entityService->loadEntityLocal(
                         $this->_node->getNodeId(), 'order', $storeId, $creditmemo['order_id']);
                     if ($order) {
                         $parentId = $order->getId();
@@ -185,7 +180,7 @@ class CreditmemoGateway extends AbstractGateway
                             && preg_match('#FOR ORDER: ([0-9]+[a-zA-Z]*)#', $commentData['comment'], $matches);
                         if ($isOrderComment) {
                             $originalOrderUniqueId = $matches[1];
-                            $originalOrder = $entityService->loadEntity(
+                            $originalOrder = $this->_entityService->loadEntity(
                                 $this->_node->getNodeId(), 'order', $storeId, $originalOrderUniqueId);
                             if (!$order){
                                 $message = 'Comment referenced order '.$originalOrderUniqueId
@@ -201,11 +196,11 @@ class CreditmemoGateway extends AbstractGateway
                 if ($existingEntity) {
                     if ($noLocalId) {
                         try{
-                            $entityService->unlinkEntity($this->_node->getNodeId(), $existingEntity);
+                            $this->_entityService->unlinkEntity($this->_node->getNodeId(), $existingEntity);
                         }catch(\Exception $exception) {}
-                        $entityService->linkEntity($this->_node->getNodeId(), $existingEntity, $localId);
+                        $this->_entityService->linkEntity($this->_node->getNodeId(), $existingEntity, $localId);
 
-                        $localEntity = $entityService->loadEntityLocal(
+                        $localEntity = $this->_entityService->loadEntityLocal(
                             $this->_node->getNodeId(), 'creditmemo', $storeId, $localId);
                         if ($localEntity) {
                             $logMessage .= 'Successfully relinked.';
@@ -215,31 +210,31 @@ class CreditmemoGateway extends AbstractGateway
                         }
                     }
 
-                    $entityService->updateEntity($this->_node->getNodeId(), $existingEntity, $data, FALSE);
+                    $this->_entityService->updateEntity($this->_node->getNodeId(), $existingEntity, $data, FALSE);
                     $this->getServiceLocator()->get('logService')
                         ->log($logLevel, $logCode, $logMessage, $logData, array('creditmemo unique id'=>$uniqueId));
 
-                    $this->createItems($creditmemo, $existingEntity->getId(), $entityService, FALSE);
+                    $this->createItems($creditmemo, $existingEntity->getId(), $this->_entityService, FALSE);
                 }else{
-                    $entityService->beginEntityTransaction('magento2-creditmemo-'.$uniqueId);
+                    $this->_entityService->beginEntityTransaction('magento2-creditmemo-'.$uniqueId);
                     try{
-                        $existingEntity = $entityService->createEntity(
+                        $existingEntity = $this->_entityService->createEntity(
                             $this->_node->getNodeId(), 'creditmemo', $storeId, $uniqueId, $data, $parentId);
-                        $entityService->linkEntity($this->_node->getNodeId(), $existingEntity, $localId);
+                        $this->_entityService->linkEntity($this->_node->getNodeId(), $existingEntity, $localId);
                         $this->getServiceLocator()->get('logService')
                             ->log(LogService::LEVEL_INFO, $this->getLogCode().'_new', 'New creditmemo '.$uniqueId,
                                 $logData, array('node'=>$this->_node, 'creditmemo'=>$existingEntity));
 
-                        $this->createItems($creditmemo, $existingEntity->getId(), $entityService, TRUE);
-                        $entityService->commitEntityTransaction('magento2-creditmemo-'.$uniqueId);
+                        $this->createItems($creditmemo, $existingEntity->getId(), $this->_entityService, TRUE);
+                        $this->_entityService->commitEntityTransaction('magento2-creditmemo-'.$uniqueId);
                     }catch (\Exception $exception) {
-                        $entityService->rollbackEntityTransaction('magento2-creditmemo-'.$uniqueId);
+                        $this->_entityService->rollbackEntityTransaction('magento2-creditmemo-'.$uniqueId);
                         // store as sync issue
                         throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
                     }
                 }
 
-                $this->updateComments($creditmemo, $existingEntity, $entityService);
+                $this->updateComments($creditmemo, $existingEntity, $this->_entityService);
             }
         }else{
             throw new NodeException('No valid API available for sync');
@@ -263,11 +258,11 @@ class CreditmemoGateway extends AbstractGateway
      * Insert any new comment entries as entity comments
      * @param array $creditmemoData The full creditmemo data
      * @param \Entity\Entity $creditmemo The order entity to attach to
-     * @param EntityService $entityService The EntityService
+     * @param EntityService $this->_entityService The EntityService
      */
-    protected function updateComments(array $creditmemoData, \Entity\Entity $creditmemo, EntityService $entityService)
+    protected function updateComments(array $creditmemoData, \Entity\Entity $creditmemo, EntityService $this->_entityService)
     {
-        $comments = $entityService->loadEntityComments($creditmemo);
+        $comments = $this->_entityService->loadEntityComments($creditmemo);
         $referenceIds = array();
         foreach ($comments as $comment) {
             $referenceIds[] = $comment->getReferenceId();
@@ -275,7 +270,7 @@ class CreditmemoGateway extends AbstractGateway
 
         foreach ($creditmemoData['comments'] as $historyEntry) {
             if (!in_array($historyEntry['comment_id'], $referenceIds)) {
-                $entityService->createEntityComment(
+                $this->_entityService->createEntityComment(
                     $creditmemo,
                     'Magento2',
                     'Comment: '.$historyEntry['created_at'],
@@ -291,10 +286,10 @@ class CreditmemoGateway extends AbstractGateway
      * Create all the Creditmemoitem entities for a given creditmemo
      * @param array $creditmemo
      * @param string $orderId
-     * @param EntityService $entityService
+     * @param EntityService $this->_entityService
      * @param bool $creationMode Whether this is for a newly created credit memo in magelink
      */
-    protected function createItems(array $creditmemo, $orderId, EntityService $entityService, $creationMode){
+    protected function createItems(array $creditmemo, $orderId, EntityService $this->_entityService, $creationMode){
 
         $parentId = $orderId;
 
@@ -302,16 +297,16 @@ class CreditmemoGateway extends AbstractGateway
             $uniqueId = $creditmemo['increment_id'].'-'.$item['sku'].'-'.$item['item_id'];
             $localId = $item['item_id'];
 
-            $product = $entityService->loadEntityLocal($this->_node->getNodeId(), 'product', 0, $item['product_id']);
+            $product = $this->_entityService->loadEntityLocal($this->_node->getNodeId(), 'product', 0, $item['product_id']);
 
-            $parent_item = $entityService->loadEntityLocal(
+            $parent_item = $this->_entityService->loadEntityLocal(
                 $this->_node->getNodeId(),
                 'creditmemoitem',
                 ($this->_node->isMultiStore() ? $creditmemo['store_id'] : 0),
                 $item['parent_id']
             );
 
-            $order_item = $entityService->loadEntityLocal(
+            $order_item = $this->_entityService->loadEntityLocal(
                 $this->_node->getNodeId(),
                 'orderitem',
                 ($this->_node->isMultiStore() ? $creditmemo['store_id'] : 0),
@@ -335,7 +330,7 @@ class CreditmemoGateway extends AbstractGateway
                 'hidden_tax_amount'=>(isset($item['base_hidden_tax_amount']) ? $item['base_hidden_tax_amount'] : null),
             );
 
-            $entity = $entityService->loadEntity(
+            $entity = $this->_entityService->loadEntity(
                 $this->_node->getNodeId(),
                 'creditmemoitem',
                 ($this->_node->isMultiStore() ? $creditmemo['store_id'] : 0),
@@ -351,7 +346,7 @@ class CreditmemoGateway extends AbstractGateway
                         array('node'=>$this->_node, 'entity'=>$entity)
                     );
                 $data['order_item'] = ($order_item ? $order_item->getId() : NULL);
-                $entity = $entityService->createEntity(
+                $entity = $this->_entityService->createEntity(
                     $this->_node->getNodeId(),
                     'creditmemoitem',
                     ($this->_node->isMultiStore() ? $creditmemo['store_id'] : 0),
@@ -359,9 +354,9 @@ class CreditmemoGateway extends AbstractGateway
                     $data,
                     $parentId
                 );
-                $entityService->linkEntity($this->_node->getNodeId(), $entity, $localId);
+                $this->_entityService->linkEntity($this->_node->getNodeId(), $entity, $localId);
             }else{
-                $entityService->updateEntity($this->_node->getNodeId(), $entity, $data);
+                $this->_entityService->updateEntity($this->_node->getNodeId(), $entity, $data);
             }
         }
     }
@@ -381,9 +376,9 @@ class CreditmemoGateway extends AbstractGateway
                 break;
             case \Entity\Update::TYPE_DELETE:
                 try {
-                    /** @var \Entity\Service\EntityService $entityService */
-                    $entityService = $this->getServiceLocator()->get('entityService');
-                    $localId = $entityService->getLocalId($this->_node->getNodeId(), $entity);
+                    /** @var \Entity\Service\EntityService $this->_entityService */
+                    $this->_entityService = $this->getServiceLocator()->get('entityService');
+                    $localId = $this->_entityService->getLocalId($this->_node->getNodeId(), $entity);
                     // @todo: Does not seem to cancel to creditmemo
                     $this->restV1->putCall('creditmemo/'.$localId, array());
                 }catch (\Exception $exception) {
@@ -392,8 +387,8 @@ class CreditmemoGateway extends AbstractGateway
                 }
                 break;
             case \Entity\Update::TYPE_CREATE:
-                /** @var \Entity\Service\EntityService $entityService */
-                $entityService = $this->getServiceLocator()->get('entityService');
+                /** @var \Entity\Service\EntityService $this->_entityService */
+                $this->_entityService = $this->getServiceLocator()->get('entityService');
 
                 /** @var Order $order */
                 $order = $entity->getParent();
@@ -439,7 +434,7 @@ class CreditmemoGateway extends AbstractGateway
                                 throw new GatewayException($message);
                         }
 
-                        $itemLocalId = $entityService->getLocalId($this->_node->getNodeId(), $orderItemId);
+                        $itemLocalId = $this->_entityService->getLocalId($this->_node->getNodeId(), $orderItemId);
                         if (!$itemLocalId) {
                             $message = 'Invalid order item local ID for creditmemo item '.$item->getUniqueId()
                                 .' and creditmemo '.$entity->getUniqueId().' (orderitem '.$item->getData(
@@ -456,7 +451,7 @@ class CreditmemoGateway extends AbstractGateway
                         );
                     }
 
-                    $localId = $entityService->getLocalId($this->_node->getNodeId(), $originalOrder->getId());
+                    $localId = $this->_entityService->getLocalId($this->_node->getNodeId(), $originalOrder->getId());
                     $baseShippingAmount = $entity->getData('shipping_amount', 0);
                     $baseAdjustmentPositive = $entity->getData('adjustment_positive', 0);
                     $baseAdjustmentNegative = $entity->getData('adjustment_negative', 0);
@@ -473,7 +468,7 @@ class CreditmemoGateway extends AbstractGateway
                         'base_grand_total'=>$baseGrandTotal
                     );
 
-                    $creditmemoData = $this->addCurrencyFromBase($creditmemoData, $baseToCurrencyRate);
+                    $creditmemoData = $this->_entityService->addCurrencyFromBase($creditmemoData, $baseToCurrencyRate);
 
                     try {
                         /** @todo: Check if Magento1 issue persists : Adjustment because of the conversion in
@@ -496,7 +491,7 @@ class CreditmemoGateway extends AbstractGateway
                         $creditmemoLocalId = $restResult['entity_id'];
                     }
 
-                    $entityService->updateEntityUnique($this->_node->getNodeId(), $entity, $restResult);
+                    $this->_entityService->updateEntityUnique($this->_node->getNodeId(), $entity, $restResult);
 
                     try {
                         $creditmemo = $this->restV1->getCall('creditmemo/'.$creditmemoLocalId);
@@ -507,10 +502,10 @@ class CreditmemoGateway extends AbstractGateway
                     }
 
                     try{
-                        $entityService->unlinkEntity($this->_node->getNodeId(), $entity);
+                        $this->_entityService->unlinkEntity($this->_node->getNodeId(), $entity);
                     }catch (\Exception $exception) {} // Ignore errors
 
-                    $entityService->linkEntity($this->_node->getNodeId(), $entity, $creditmemoLocalId);
+                    $this->_entityService->linkEntity($this->_node->getNodeId(), $entity, $creditmemoLocalId);
 
                     if (isset($creditmemo['items'])) {
                         // Update credit memo item local and unique IDs
@@ -519,17 +514,17 @@ class CreditmemoGateway extends AbstractGateway
                                 $isItemSkuAndQtyTheSame = $itemEntity->getData('sku') == $item['sku']
                                     && $itemEntity->getData('qty') == $item['qty'];
                                 if ($isItemSkuAndQtyTheSame) {
-                                    $entityService->updateEntityUnique(
+                                    $this->_entityService->updateEntityUnique(
                                         $this->_node->getNodeId(),
                                         $itemEntity,
                                         $creditmemo['increment_id'].'-'.$item['sku'].'-'.$item['item_id']
                                     );
 
                                     try{
-                                        $entityService->unlinkEntity($this->_node->getNodeId(), $itemEntity);
+                                        $this->_entityService->unlinkEntity($this->_node->getNodeId(), $itemEntity);
                                     }catch(\Exception $exception) {} // Ignore errors
 
-                                    $entityService->linkEntity(
+                                    $this->_entityService->linkEntity(
                                         $this->_node->getNodeId(),
                                         $itemEntity,
                                         $item['item_id']
@@ -577,13 +572,8 @@ class CreditmemoGateway extends AbstractGateway
      */
     public function writeAction(\Entity\Action $action)
     {
-        /** @var \Entity\Service\EntityService $entityService */
-        $entityService = $this->getServiceLocator()->get('entityService');
-        /** @var \Entity\Service\EntityConfigService $entityConfigService */
-        $entityConfigService = $this->getServiceLocator()->get('entityConfigService');
-
         $entity = $action->getEntity();
-        $localId = $entityService->getLocalId($this->_node->getNodeId(), $entity);
+        $localId = $this->_entityService->getLocalId($this->_node->getNodeId(), $entity);
 
         $success = FALSE;
         if (stripos($entity->getUniqueId(), 'TMP-') === 0) {
@@ -630,31 +620,6 @@ class CreditmemoGateway extends AbstractGateway
         }
 
         return $success;
-    }
-
-    /**
-     * @param array $data
-     * @param float $baseToCurrencyRate
-     * @return array
-     */
-    protected function addCurrencyFromBase(array $data, $baseToCurrencyRate)
-    {
-        $newData = array();
-
-        foreach ($data as $key=>$value) {
-            if (is_array($value)) {
-                $value = $this->addCurrencyFromBase($value, $baseToCurrencyRate);
-            }
-
-            $newData[$key] = $value;
-
-            if (strpos($key, 'base_') === 0) {
-                $newKey = str_replace('base_', '', $key);
-                $newData[$newKey] = $value * $baseToCurrencyRate;
-            }
-        }
-
-        return $newData;
     }
 
 }
