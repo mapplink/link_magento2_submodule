@@ -23,7 +23,7 @@ abstract class AbstractGateway extends BaseAbstractGateway
     const GATEWAY_ENTITY_CODE = 'gey';
     const GATEWAY_ENTITY = 'generic';
 
-    /** @var \Entity\Service\EntityConfigService $entityConfigService */
+    /** @var \Entity\Service\EntityConfigService $this->entityConfigService */
     protected $entityConfigService = NULL;
 
     /** @var \Magento2\Api\Db $this->db */
@@ -40,6 +40,8 @@ abstract class AbstractGateway extends BaseAbstractGateway
      */
     protected function _init($entityType)
     {
+        $this->entityConfigService = $this->getServiceLocator()->get('entityConfigService');
+
         $this->db = $this->_node->getApi('db');
         $this->restV1 = $this->_node->getApi('restV1');
 
