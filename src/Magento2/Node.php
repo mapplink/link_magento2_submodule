@@ -214,9 +214,11 @@ class Node extends AbstractNode
             case 'stockitem':
                 $gateway = new Gateway\StockGateway;
                 break;
-            case 'creditmemo':
-                $gateway = new Gateway\CreditmemoGateway;
-                break;
+            /** @todo: Check creditmemo functionality. Stays disabled for now.
+             *   case 'creditmemo':
+             *   $gateway = new Gateway\CreditmemoGateway;
+             *   break;
+             */
             default:
                 throw new SyncException('Unknown/invalid entity type '.$entityType);
         }
