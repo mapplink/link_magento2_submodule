@@ -39,7 +39,7 @@ class CustomerGateway extends AbstractGateway
             }
 
             try {
-                $groups = $this->restV1->getCall('customerGroups/search', array(
+                $groups = $this->restV1->get('customerGroups/search', array(
                     'filter'=>array(array(
                         'field'=>'id',
                         'value'=>0,
@@ -77,7 +77,7 @@ class CustomerGateway extends AbstractGateway
 
         if ($this->restV1) {
             try {
-                $results = $this->restV1->getCall('customers/search', array(
+                $results = $this->restV1->get('customers/search', array(
                     'filter'=>array(array(
                         'field'=>'updated_at',
                         'value'=>$this->lastRetrieveDate,

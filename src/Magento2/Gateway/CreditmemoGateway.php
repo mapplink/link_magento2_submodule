@@ -63,7 +63,7 @@ class CreditmemoGateway extends AbstractGateway
             // @todo: Implement
         }elseif ($this->restV1) {
             try {
-                $results = $this->restV1->getCall('creditmemos', array(
+                $results = $this->restV1->get('creditmemos', array(
                     'filter'=>array(array(
                         'field'=>'updated_at',
                         'value'=>$this->lastRetrieveDate,
@@ -379,7 +379,7 @@ class CreditmemoGateway extends AbstractGateway
                     $this->_entityService = $this->getServiceLocator()->get('entityService');
                     $localId = $this->_entityService->getLocalId($this->_node->getNodeId(), $entity);
                     // @todo: Does not seem to cancel to creditmemo
-                    $this->restV1->putCall('creditmemo/'.$localId, array());
+                    $this->restV1->put('creditmemo/'.$localId, array());
                 }catch (\Exception $exception) {
                     // store as sync issue
                     throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
@@ -474,7 +474,7 @@ class CreditmemoGateway extends AbstractGateway
                          * Mage_Sales_Model_Order_Creditmemo_Api:165 (rounding issues likely) */
                         $storeCreditRefundAdjusted = $entity->getData('customer_balance_ref', 0) / $baseToCurrencyRate;
                         /** @todo: Make it work correctly. Does not sync mback to order properly */
-                        $restResult = $this->restV1->postCall('creditmemo', array('entity'=>$creditmemoData));
+                        $restResult = $this->restV1->post('creditmemo', array('entity'=>$creditmemoData));
                     }catch (\Exception $exception) {
                         // @todo: What does 'store as sync issue' mean?
                         throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
@@ -493,7 +493,7 @@ class CreditmemoGateway extends AbstractGateway
                     $this->_entityService->updateEntityUnique($this->_node->getNodeId(), $entity, $restResult);
 
                     try {
-                        $creditmemo = $this->restV1->getCall('creditmemo/'.$creditmemoLocalId);
+                        $creditmemo = $this->restV1->get('creditmemo/'.$creditmemoLocalId);
                     }catch (\Exception $exception) {
                         // store as sync issue
                         throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
@@ -542,7 +542,7 @@ class CreditmemoGateway extends AbstractGateway
                     }
 
                     try {
-                        $this->restV1->postCall('creditmemo/'.$creditmemoLocalId.'/comments',
+                        $this->restV1->post('creditmemo/'.$creditmemoLocalId.'/comments',
                             array(
                                 'comment'=>'FOR ORDER: '.$order->getUniqueId(),
                                 'created_at'=>strftime('%Y-%m-%d %H:%M:%S'),
@@ -586,7 +586,7 @@ class CreditmemoGateway extends AbstractGateway
                         ? ($action->getData('includeComment') ? 1 : 0) : NULL);
 
                     try{
-                        $this->restV1->postCall('creditmemo/'.$localId.'/comments',
+                        $this->restV1->post('creditmemo/'.$localId.'/comments',
                             array(
                                 'comment'=>$comment,
                                 'created_at'=>strftime('%Y-%m-%d %H:%M:%S'),
@@ -605,7 +605,7 @@ class CreditmemoGateway extends AbstractGateway
                 case 'cancel':
                     try {
                         // @todo: Does not seem to work
-                        $this->restV1->putCall('creditmemo/'.$localId, array());
+                        $this->restV1->put('creditmemo/'.$localId, array());
                         $success = TRUE;
                     }catch (\Exception $exception) {
                         // store as sync issue

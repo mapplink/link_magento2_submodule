@@ -255,7 +255,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      * @param string $callType
      * @return mixed $curlExecReturn
      */
-    public function deleteCall($callType)
+    public function delete($callType)
     {
         $response = $this->call('DELETE', $callType);
         // @todo
@@ -267,7 +267,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      * @param array $parameters
      * @return mixed $curlExecReturn
      */
-    public function getCall($callType, array $parameters = array())
+    public function get($callType, array $parameters = array())
     {
         $response = $this->call('GET', $callType, $parameters);
 
@@ -283,7 +283,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      * @param array $parameters
      * @return mixed $curlExecReturn
      */
-    public function postCall($callType, array $parameters = array())
+    public function post($callType, array $parameters = array())
     {
         $response = $this->call('POST', $callType, $parameters);
         // @todo
@@ -295,7 +295,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      * @param array $parameters
      * @return mixed $curlExecReturn
      */
-    public function putCall($callType, array $parameters = array())
+    public function put($callType, array $parameters = array())
     {
         $response = $this->call('PUT', $callType, $parameters);
         // @todo

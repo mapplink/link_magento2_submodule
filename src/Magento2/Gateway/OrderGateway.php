@@ -459,7 +459,7 @@ class OrderGateway extends AbstractGateway
 
                     try{
                         $comment = 'Order retrieved by MageLink, Entity #'.$existingEntity->getId();
-                        $this->restV1->postCall('orders/'.$localId.'/comments', array(
+                        $this->restV1->post('orders/'.$localId.'/comments', array(
                             'statusHistory'=>array(
                                 'comment'=>$comment,
                                 'isCustomerNotified'=>0,
@@ -602,7 +602,7 @@ class OrderGateway extends AbstractGateway
                     'value'=>$this->lastRetrieveDate,
                     'condition_type'=>'gt'
                 ));
-                $orders = $this->restV1->getCall('orders', array('filter'=>$filter));
+                $orders = $this->restV1->get('orders', array('filter'=>$filter));
 
                 $this->getServiceLocator()->get('logService')
                     ->log(LogService::LEVEL_INFO,
@@ -692,7 +692,7 @@ class OrderGateway extends AbstractGateway
                 }
 
                 try {
-                    $orders = $this->restV1->getCall('orders', $filter);
+                    $orders = $this->restV1->get('orders', $filter);
                 }catch (\Exception $exception) {
                     // store as sync issue
                     throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
@@ -781,7 +781,7 @@ class OrderGateway extends AbstractGateway
                         throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
                     }
                 }elseif ($this->restV1) {
-                    $orderData = $this->restV1->getCall('orders/'.$localId, array());
+                    $orderData = $this->restV1->get('orders/'.$localId, array());
                 }else{
                     throw new NodeException('No valid API available for forced synchronisation');
                 }
@@ -1067,7 +1067,7 @@ class OrderGateway extends AbstractGateway
                 }
 
                 try {
-                    $this->restV1->postCall('orders/'.$localId.'/comments', array(
+                    $this->restV1->post('orders/'.$localId.'/comments', array(
                         'statusHistory'=>array(
                             'comment'=>$comment,
                             'isCustomerNotified'=>$notify,
@@ -1094,9 +1094,9 @@ class OrderGateway extends AbstractGateway
                         $success = FALSE;
                     }else{
                         try {
-                            $this->restV1->postCall('orders/'.$localId.'/cancel', array());
+                            $this->restV1->post('orders/'.$localId.'/cancel', array());
                             // Update status straight away
-                            $changedOrder = $this->restV1->getCall('orders/'.$localId, array());
+                            $changedOrder = $this->restV1->get('orders/'.$localId, array());
 
                             $newStatus = $changedOrder['status'];
                             $changedOrderData = array('status'=>$newStatus);
@@ -1125,7 +1125,7 @@ class OrderGateway extends AbstractGateway
                     $success = FALSE;
                 }else{
                     try {
-                        $this->restV1->postCall('orders/'.$localId.'/hold ', array());
+                        $this->restV1->post('orders/'.$localId.'/hold ', array());
                     }catch (\Exception $exception) {
                         // store as sync issue
                         throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
@@ -1139,7 +1139,7 @@ class OrderGateway extends AbstractGateway
                     $success = FALSE;
                 }else{
                     try {
-                        $this->restV1->postCall('orders/'.$localId.'/unhold ', array());
+                        $this->restV1->post('orders/'.$localId.'/unhold ', array());
                     }catch (\Exception $exception) {
                         // store as sync issue
                         throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
@@ -1335,7 +1335,7 @@ class OrderGateway extends AbstractGateway
                 $creditRefund
             ));
 */
-            $restResult = $this->restV1->postCall('creditmemo', array('entity'=>$creditmemoData));
+            $restResult = $this->restV1->post('creditmemo', array('entity'=>$creditmemoData));
         }catch (\Exception $exception) {
             // store as sync issue
             throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
@@ -1407,7 +1407,7 @@ class OrderGateway extends AbstractGateway
             );
 
         try {
-            $restResult = $this->restV1->postCall('shipment', array(
+            $restResult = $this->restV1->post('shipment', array(
                 'entity'=>array(
                     'order_id'=>$orderId,
                     'itemsQty'=>$items,
@@ -1445,7 +1445,7 @@ class OrderGateway extends AbstractGateway
 
         if (!is_null($trackingCode)) {
             try {
-                $this->restV1->postCall('shipment/track', array(
+                $this->restV1->post('shipment/track', array(
                     'entity'=>array(
                         'carrier_code'=>'custom',
                         'order_id'=>$localId,
