@@ -1405,12 +1405,14 @@ class OrderGateway extends AbstractGateway
             );
 
         try {
-            $restResult = $this->restV1->postCall('shipment', array('entity'=>array(
-                'order_id'=>$orderId,
-                'itemsQty'=>$items,
-                'comment'=>$comment,
-                'email'=>$notify,
-                'includeComment'=>$sendComment
+            $restResult = $this->restV1->postCall('shipment', array(
+                'entity'=>array(
+                    'order_id'=>$orderId,
+                    'itemsQty'=>$items,
+                    'comment'=>$comment,
+                    'email'=>$notify,
+                    'includeComment'=>$sendComment
+                )
             ));
         }catch (\Exception $exception) {
             // store as sync issue
