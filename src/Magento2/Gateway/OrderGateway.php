@@ -1388,8 +1388,10 @@ class OrderGateway extends AbstractGateway
             $items = NULL;
         }
 
-        $orderId = ($order->getData('original_order') != NULL ?
-            $order->resolve('original_order', 'order')->getUniqueId() : $order->getUniqueId());
+        $originalOrder = $order->getOriginalOrder();
+        $orderId = $originalOrder->getId();
+        $localId = $this->_entityService->getLocalId($this->_node->getNodeId(), $originalOrder);
+
         $this->getServiceLocator()->get('logService')
             ->log(LogService::LEVEL_DEBUGEXTRA,
                 $this->getLogCode().'_act_ship',
@@ -1422,27 +1424,36 @@ class OrderGateway extends AbstractGateway
         if (is_object($restResult)) {
             $restResult = $restResult->shipmentIncrementId;
         }elseif (is_array($restResult)) {
-            if (isset($restResult['shipmentIncrementId'])) {
-                $restResult = $restResult['shipmentIncrementId'];
+            if (isset($restResult['entity_id'])) {
+                $shipmentLocalId = $restResult['entity_id'];
             }else{
-                $restResult = array_shift($restResult);
+                $logMessage = 'No shipment entity id information in the REST response.';
+                if (!is_null($trackingCode)) {
+                    $logMessage .= ' Cannot add tracking code.';
+                }
+
+                $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_ERROR,
+                    $this->getLogCode().'_ship_err', $logMessage,
+                    array('order'=>$order->getUniqueId(), 'tracking code'=>$trackingCode, 'rest response'=>$restResult)
+                );
+
+                // @todo (maybe): Store as a sync issue
+
+                $shipmentLocalId = $trackingCode = NULL;
             }
         }
 
-        if (!$restResult) {
-            // store as sync issue
-            throw new GatewayException('Failed to get shipment ID from Magento2 for order '.$order->getUniqueId());
-        }
-
-        if ($trackingCode != NULL) {
+        if (!is_null($trackingCode)) {
             try {
-                $this->restV1->call('salesOrderShipmentAddTrack',
-                    array(
-                        'shipmentIncrementId'=>$restResult,
-                        'carrier'=>'custom',
+                $this->restV1->postCall('shipment/track', array(
+                    'entity'=>array(
+                        'carrier_code'=>'custom',
+                        'order_id'=>$localId,
+                        'parent_id'=>$shipmentLocalId,
                         'title'=>$order->getData('shipping_method', 'Shipping'),
-                        'trackNumber'=>$trackingCode)
-                );
+                        'trackNumber'=>$trackingCode
+                    )
+                ));
             }catch (\Exception $exception) {
                 // store as sync issue
                 throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
