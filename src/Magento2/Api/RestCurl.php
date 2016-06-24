@@ -117,7 +117,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
 
     /**
      * @param string $callType
-     * @return mixed $curlExecReturn
+     * @return mixed $curlExecResponse
      */
     protected function executeCurl($callType)
     {
@@ -136,15 +136,28 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
         }else{
             try {
                 $logData = array('response'=>$response);
-                $responseArray = json_decode($response);
+                $decodedResponse = json_decode($response);
 
                 $error = array();
-                if (array_key_exists('message', $responseArray)) {
-                    $error[] = $responseArray['message'];
+                $errorKeys = array('message', 'parameters', 'trace');
+
+                try{
+                    $responseArray = (array) $decodedResponse;
+                    foreach ($errorKeys as $key) {
+
+                        if (isset($responseArray[$key])) {
+                            $error[] = $responseArray[$key];
+                        }
+                    }
+                }catch(\Exception $exception) {
+                    $logData['exception'] = $exception->getMessage();
+                    foreach ($errorKeys as $key) {
+                        if (isset($decodedResponse->$key)) {
+                            $error[] = $decodedResponse->$key;
+                        }
+                    }
                 }
-                if (array_key_exists('trace', $responseArray)) {
-                    $error[] = $responseArray['trace'];
-                }
+
                 $error = implode(' ', $error);
                 if (strlen($error) == 0 && current($responseArray) != trim($response, '"')) {
                     $error = 'This does not seem to be a valid '.$callType.' key: '.$response;
@@ -159,6 +172,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
                     $logLevel = LogService::LEVEL_ERROR;
                     $logCode .= '_fail';
                     $logMessage = ucfirst($callType).' failed. Error message: '.$error;
+                    $logData['error'] = $error;
                     $response = NULL;
                 }
 
@@ -166,7 +180,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
                     ->log($logLevel, $logCode, $logMessage, $logData);
             }catch (\Exception $exception) {
                 $logCode = $logCode.'_err';
-                $logMessage = 'Authorisation failed. Error during decoding of '.var_export($response, TRUE);
+                $logMessage = ucfirst($callType).' failed. Error during decoding of '.var_export($response, TRUE);
                 $this->getServiceLocator()->get('logService')
                     ->log(LogService::LEVEL_ERROR, $logCode, $logMessage, $logData);
                 $response = NULL;
@@ -241,12 +255,6 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
         $this->$method($parameters);
 
         $response = $this->executeCurl('call');
-
-        try {
-            $response = json_decode($response);
-        }catch(\Exception $exception) {
-            // @todo: logException
-        }
 
         return $response;
     }
