@@ -42,7 +42,9 @@ class ProductGateway extends AbstractGateway
             $success = FALSE;
         }else{
             try {
-                $attributeSets = $this->restV1->get('eav/attribute-sets/list',array());
+                $attributeSets = $this->restV1->get('eav/attribute-sets/list', array(
+                    'filter'=>array(array('field'=>'attribute_set_id', 'value'=>0, 'condition_type'=>'gt'))
+                ));
             }catch (\Exception $exception) {
                 throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
                 $success = FALSE;
