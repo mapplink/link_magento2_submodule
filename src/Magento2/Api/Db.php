@@ -637,10 +637,31 @@ class Db implements ServiceLocatorAwareInterface
                     $insertForStore0 = array_merge($whereForStore0, $updateSet);
 
                     if ($storeId > 0) {
-                        $resultsDefault = $this->getTableGateway($type)->select($whereForStore0);
+                        try {
+                            $resultsDefault = $this->getTableGateway($type)->select($whereForStore0);
+                        }catch (\Exception $exception) {
+                            throw new MagelinkException('On updateEntityEav() select: '.$exception->getMessage());
+                            $logCode = 'mg2_db_slct_err';
+                            $logData = array(
+                                'where'=>$whereForStore0,
+                                'exception'=>$exception->getMessage()
+                            );
+//                            $this->getServiceLocator()->get('logService')
+//                                ->log(LogService::LEVEL_ERROR, $logCode, $logMessage, $logData);
+                        }
 
                         if (!$resultsDefault || !count($resultsDefault)) {
-                            $affectedRows += $this->getTableGateway($type)->insert($insertForStore0);
+                            $logCode = 'mg2_db_inst0';
+                            $logData = array('insert set 0'=>json_encode($insertForStore0));
+                            try{
+                                $affectedRows += $this->getTableGateway($type)->insert($insertForStore0);
+                                $logLevel = LogService::LEVEL_INFO;
+                            }catch (\Exception $exception) {
+                                throw new MagelinkException('On updateEntityEav() insert0: '.$exception->getMessage());
+                                $logLevel = LogService::LEVEL_ERROR;
+                                $logCode .= '_err';
+                                $logData['exception'] = $exception->getMessage();
+                            }
 //                            $this->getServiceLocator()->get('logService')
 //                                ->log(LogService::LEVEL_INFO, 'mg2_db_insert0', $logMessage, $logData);
                         }
@@ -648,13 +669,33 @@ class Db implements ServiceLocatorAwareInterface
 
                     $resultsStore = $this->getTableGateway($type)->select($where);
                     if (!$resultsStore || !count($resultsStore)) {
-                        $affectedRows += $this->getTableGateway($type)->insert($insertSet);
+                        $logCode = 'mg2_db_inst';
+                        $logData = array('insert set'=>json_encode($insertSet));
+                        try {
+                            $affectedRows += $this->getTableGateway($type)->insert($insertSet);
+                            $logLevel = LogService::LEVEL_INFO;
+                        }catch (\Exception $exception) {
+                            throw new MagelinkException('On updateEntityEav() insert: '.$exception->getMessage());
+                            $logLevel = LogService::LEVEL_ERROR;
+                            $logCode .= '_err';
+                            $logData['exception'] = $exception->getMessage();
+                        }
 //                        $this->getServiceLocator()->get('logService')
-//                            ->log(LogService::LEVEL_INFO, 'mg2_db_insert', $logMessage, $logData);
+//                            ->log(LogService::LEVEL_INFO, $logCode, $logMessage, $logData);
                     }else{
-                        $affectedRows += $this->getTableGateway($type)->update($updateSet, $where);
+                        $logCode = 'mg2_db_upd';
+                        $logData = array('update set'=>json_encode($updateSet), 'where'=>$where);
+                        try {
+                            $affectedRows += $this->getTableGateway($type)->update($updateSet, $where);
+                            $logLevel = LogService::LEVEL_INFO;
+                        }catch (\Exception $exception) {
+                            throw new MagelinkException('On updateEntityEav() select: '.$exception->getMessage());
+                            $logLevel = LogService::LEVEL_ERROR;
+                            $logCode .= '_err';
+                            $logData['exception'] = $exception->getMessage();
+                        }
 //                        $this->getServiceLocator()->get('logService')
-//                            ->log(LogService::LEVEL_INFO, 'mg2_db_update', $logMessage, $logData);
+//                            ->log(LogService::LEVEL_INFO, $logCode, $logMessage, $logData);
                     }
                 }
             }
@@ -960,8 +1001,13 @@ class Db implements ServiceLocatorAwareInterface
         if (!isset($this->attributesByEntityType[$entityType][$attributeCode])) {
             $this->attributesByEntityType[$entityType][$attributeCode] = NULL;
 
-            $response = $this->getTableGateway('eav_attribute')
-                ->select(array('entity_type_id'=>$entityType, 'attribute_code'=>$attributeCode));
+            try{
+                $response = $this->getTableGateway('eav_attribute')
+                    ->select(array('entity_type_id' => $entityType, 'attribute_code' => $attributeCode));
+            }catch (\Exception $exception) {
+                throw new MagelinkException('On getAttribute(): '.$exception->getMessage());
+            }
+
             foreach ($response as $row) {
                 $this->attributesByEntityType[$entityType][$attributeCode] = $row;
                 break;
