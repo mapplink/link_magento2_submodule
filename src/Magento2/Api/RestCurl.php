@@ -13,7 +13,7 @@ namespace Magento2\Api;
 use Log\Service\LogService;
 use Magelink\Exception\MagelinkException;
 use Magento2\Node;
-use Zend\Escaper\Escaper;
+use Zend\Json\Json;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
@@ -26,15 +26,17 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     protected $node = NULL;
 
     /** @var resource|FALSE|NULL $this->curlHandle */
-    protected $curlHandle;
+    protected $curlHandle = NULL;
+    /** @var string|NULL $this->header */
+    protected $header = NULL;
     /** @var string $this->authorisation */
     protected $authorisation = NULL;
     /** @var string $this->requestType */
     protected $requestType;
-    /** @var array $this->curlOptions */
-    protected $curlOptions = array(
+    /** @var array $this->baseCurlOptions */
+    protected $baseCurlOptions = array(
         CURLOPT_RETURNTRANSFER=>TRUE,
-        CURLOPT_ENCODING=>"",
+        CURLOPT_ENCODING=>'',
         CURLOPT_MAXREDIRS=>10,
         CURLOPT_TIMEOUT=>30,
         CURLOPT_HTTP_VERSION=>CURL_HTTP_VERSION_1_1
@@ -88,13 +90,36 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     abstract protected function getLogCodePrefix();
 
     /**
+     * @return FALSE|NULL|resource $this->curlHandle
+     */
+    protected function initCurl()
+    {
+        $this->getCurlHandle();
+        curl_setopt_array($this->curlHandle, $this->baseCurlOptions);
+
+        return $this->curlHandle;
+    }
+
+    /**
+     * @return FALSE|NULL|resource $this->curlHandle
+     */
+    protected function getCurlHandle()
+    {
+        if (is_null($this->curlHandle)) {
+            $this->curlHandle = curl_init();
+        }
+
+        return $this->curlHandle;
+    }
+
+    /**
      * @param string $callType
      * @param array $parameters
      * @return string $url
      */
     protected function getUrl($callType, array $parameters = array())
     {
-        $url = $this->node->getConfig('web_url').static::REST_BASE_URI.$callType;
+        $url = trim($this->node->getConfig('web_url'), '/').static::REST_BASE_URI.$callType;
         if (count($parameters) > 0) {
             // @todo include parameters
         }
@@ -103,42 +128,34 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     }
 
     /**
-     * @return FALSE|NULL|resource $this->curlHandle
-     */
-    protected function initCurl()
-    {
-        if (!$this->curlHandle) {
-            $this->curlHandle = curl_init();
-            curl_setopt_array($this->curlHandle, $this->curlOptions);
-        }
-
-        return $this->curlHandle;
-    }
-
-    /**
      * @param string $callType
      * @return mixed $curlExecResponse
      */
     protected function executeCurl($callType)
     {
+        $logData = array(
+            'request type'=>$this->requestType,
+            'header'=>$this->header,
+            'curl info'=>curl_getinfo($this->getCurlHandle())
+        );
+
         $response = curl_exec($this->curlHandle);
         $error = $this->getError();
 
-        $callType = strtolower($callType);
-        $logCode = $this->getLogCodePrefix().'_'.substr($callType, 0, 2);
+        $logCode = $this->getLogCodePrefix().'_'.substr(strtolower($this->requestType), 0, 2);
         if ($error) {
             $logCode .= '_cerr';
-            $logMessage = ucfirst($callType).' failed. Curl error: '.$error;
-            $logData = array('curl error'=>$error);
+            $logMessage = $callType.' failed. Curl error: '.$error;
+            $logData['curl error'] = $error;
             $this->getServiceLocator()->get('logService')
                 ->log(LogService::LEVEL_ERROR, $logCode, $logMessage, $logData);
             $response = NULL;
         }else{
             try {
-                $logData = array('response'=>$response);
-                $decodedResponse = json_decode($response);
+                $logData['response'] = $response;
+                $decodedResponse = Json::decode($response, Json::TYPE_ARRAY);
 
-                $error = array();
+                $errors = array();
                 $errorKeys = array('message', 'parameters', 'trace');
 
                 try{
@@ -146,19 +163,23 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
                     foreach ($errorKeys as $key) {
 
                         if (isset($responseArray[$key])) {
-                            $error[] = $responseArray[$key];
+                            if (is_string($responseArray[$key])) {
+                                $errors[] = $responseArray[$key];
+                            }else{
+                                $errors[] = var_export($responseArray[$key], TRUE);
+                            }
                         }
                     }
                 }catch(\Exception $exception) {
                     $logData['exception'] = $exception->getMessage();
                     foreach ($errorKeys as $key) {
                         if (isset($decodedResponse->$key)) {
-                            $error[] = $decodedResponse->$key;
+                            $errors[] = $decodedResponse->$key;
                         }
                     }
                 }
 
-                $error = implode(' ', $error);
+                $error = implode(' ', $errors);
                 if (strlen($error) == 0 && current($responseArray) != trim($response, '"')) {
                     $error = 'This does not seem to be a valid '.$callType.' key: '.$response;
                 }
@@ -167,11 +188,11 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
                     $response = $responseArray;
                     $logLevel = LogService::LEVEL_INFO;
                     $logCode .= '_suc';
-                    $logMessage = ucfirst($callType).' suceed. ';
+                    $logMessage = $callType.' succeeded. ';
                 }else{
                     $logLevel = LogService::LEVEL_ERROR;
                     $logCode .= '_fail';
-                    $logMessage = ucfirst($callType).' failed. Error message: '.$error;
+                    $logMessage = $callType.' failed. Error message: '.$error;
                     $logData['error'] = $error;
                     $response = NULL;
                 }
@@ -180,7 +201,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
                     ->log($logLevel, $logCode, $logMessage, $logData);
             }catch (\Exception $exception) {
                 $logCode = $logCode.'_err';
-                $logMessage = ucfirst($callType).' failed. Error during decoding of '.var_export($response, TRUE);
+                $logMessage = $callType.' failed. Error during decoding of '.var_export($response, TRUE);
                 $this->getServiceLocator()->get('logService')
                     ->log(LogService::LEVEL_ERROR, $logCode, $logMessage, $logData);
                 $response = NULL;
@@ -197,17 +218,15 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     {
         if (!is_null($this->curlHandle)) {
             curl_close($this->curlHandle);
-            unset($this->curlHandle, $this->authorisation);
+            unset($this->curlHandle);
         }
     }
 
     /**
-     * @return null|string $this->authorisation
+     * @return bool $this->authorisation
      */
     protected function authorise()
     {
-        $this->initCurl();
-
         if (is_null($this->authorisation)) {
             $url = $this->getUrl('integration/admin/token');
             $this->setBaseurl($url);
@@ -217,7 +236,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
 
             $username = $this->node->getConfig('rest_username');
             $password = $this->node->getConfig('rest_password');
-            $postfields = '{"username":"'.$username.'","password":"'.$password.'"}';
+            $postfields = '{"username":"'.$username.'", "password":"'.$password.'"}';
             $this->setPostfields($postfields);
 
             $response = $this->executeCurl('Authorisation');
@@ -229,7 +248,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
             }
         }
 
-        return $this->authorisation;
+        return (bool) $this->authorisation;
     }
 
     /**
@@ -240,21 +259,19 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      */
     protected function call($httpMethod, $callType, array $parameters = array())
     {
+        $this->initCurl();
+        $this->authorise();
+
+        $header = array('authorisation: '.$this->authorisation, 'content-type: application/json');
         $httpMethod = strtoupper($httpMethod);
         $method = 'set'.ucfirst(strtolower($httpMethod)).'fields';
 
         $this->initCurl();
-        $this->authorise();
-
-        $header = array(
-            'Authorisation: '.$this->authorisation,
-            'content-type: application/json'
-        );
-
+        $this->setBaseurl($this->getUrl($callType));
         $this->setHeader($header);
         $this->$method($parameters);
 
-        $response = $this->executeCurl('call');
+        $response = $this->executeCurl($callType);
 
         return $response;
     }
@@ -324,11 +341,14 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
                 break;
             }
         }
+
         if ($cacheControl) {
             $header[] = $cacheControl;
         }
 
-        return curl_setopt($this->initCurl(), CURLOPT_HTTPHEADER, $header);
+        $this->header = $header;
+
+        return curl_setopt($this->getCurlHandle(), CURLOPT_HTTPHEADER, $header);
     }
 
     /**
@@ -337,51 +357,61 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      */
     public function setBaseurl($url)
     {
-        return curl_setopt($this->initCurl(), CURLOPT_URL, $url);
+var_dump($url);
+        return curl_setopt($this->getCurlHandle(), CURLOPT_URL, $url);
     }
 
     /**
-     * @param string $urlfields
+     * @param string $urlParameters
      * @return bool $success
      */
-    public function setUrlfields($urlfields)
+    protected function setUrlParameters($urlParameters)
     {
-        $url = curl_getinfo($this->initCurl(), CURLINFO_EFFECTIVE_URL);
-        if (is_null($this->requestType)) {
-            $this->requestType = 'DELETE';
+        $success = FALSE;
 
-            $urlParameters = array();
-            $url = $url.'?';
-            $escaper = new Escaper('utf-8');
+        $url = curl_getinfo($this->getCurlHandle(), CURLINFO_EFFECTIVE_URL);
+        if (!is_null($this->requestType)) {
+            if (isset($urlParameters['filter']) && is_array($urlParameters['filter'])) {
+                $parameters = '';
+                $concatCharacter = '?';
 
-            foreach ($urlfields as $key=>$value) {
-                $escapedKey = $escaper->escapeUrl($key);
+                foreach ($urlParameters['filter'] as $filterKey=>$filter) {
+                    foreach ($filter as $key=>$value) {
+                        $escapedKey = urlencode($key);
+                        $escapedValue = urlencode($value);
 
-                if ($key != $escapedKey) {
-                    $logCode = $this->getLogCodePrefix().'_del__err';
-                    $logMessage = $this->requestType.' field key '.var_export($key, TRUE).' is not valid.';
-                    $logData = array('key'=>$key, 'escapedKey'=>$escapedKey, 'value'=>$value, 'fields'=>$urlfields);
-                    $this->getServiceLocator()->get('logService')
-                        ->log(LogService::LEVEL_ERROR, $logCode, $logMessage, $logData);
-                    /** @todo */
-                    throw new MagelinkException($logMessage);
-                    $urlParameters = array();
-                    break;
-                }else{
-                    $escapedValue = $escaper->escapeUrl($value);
-                    $urlParameters[] = $key.'='.$escapedValue;
+                        if ($key != $escapedKey || $value != $escapedValue) {
+                            $logCode = $this->getLogCodePrefix().'_url__err';
+                            $logMessage = $this->requestType.' field key-value pair is not valid.';
+                            $logData = array(
+                                'key'=>$key,
+                                'escaped key'=>$escapedKey,
+                                'value'=>$value,
+                                'escaped value'=>$escapedValue,
+                                'fields'=>$urlParameters
+                            );
+                            $this->getServiceLocator()->get('logService')
+                                ->log(LogService::LEVEL_ERROR, $logCode, $logMessage, $logData);
+                            /** @todo */
+                            throw new MagelinkException($logMessage);
+                            $parameters = array();
+                            break;
+                        }else {
+                            $parameters .= $concatCharacter.htmlentities('searchCriteria[filterGroups][0]'
+                                .'[filters]['.$filterKey.']['.$key.']='.$value);
+                        }
+                        $concatCharacter = '&';
+                    }
+
+                    if (count($urlParameters) != 0) {
+                        $success = $this->setBaseurl($url.$parameters);
+                        $success &= curl_setopt($this->getCurlHandle(), CURLOPT_CUSTOMREQUEST, $this->requestType);
+                        $success &= curl_setopt($this->getCurlHandle(), CURLOPT_POSTFIELDS, '');
+                    }
                 }
-            }
-
-            if (count($urlParameters) == 0) {
-                $success = FALSE;
             }else{
-                $url .= implode('&', $urlParameters);
-                $success = $this->setBaseurl($url);
-                $success &= curl_setopt($this->initCurl(), CURLOPT_CUSTOMREQUEST, $this->requestType);
+                $success = TRUE;
             }
-        }else{
-            $success = FALSE;
         }
 
         return (bool) $success;
@@ -393,13 +423,8 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      */
     public function setDeletefields($deletefields)
     {
-        $url = curl_getinfo($this->initCurl(), CURLINFO_EFFECTIVE_URL);
-        if (is_null($this->requestType)) {
-            $this->requestType = 'DELETE';
-            $success = $this->setUrlfields($deletefields);
-        }else{
-            $success = FALSE;
-        }
+        $this->requestType = 'DELETE';
+        $success = $this->setUrlParameters($deletefields);
 
         return (bool) $success;
     }
@@ -410,13 +435,8 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      */
     public function setGetfields(array $getfields)
     {
-        $url = curl_getinfo($this->initCurl(), CURLINFO_EFFECTIVE_URL);
-        if (is_null($this->requestType)) {
-            $this->requestType = 'GET';
-            $success = $this->setUrlfields($getfields);
-        }else{
-            $success = FALSE;
-        }
+        $this->requestType = 'GET';
+        $success = $this->setUrlParameters($getfields);
 
         return (bool) $success;
     }
@@ -429,8 +449,8 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     protected function setBodyfields($requestType, $bodyfields)
     {
         $this->requestType = $requestType;
-        $success = curl_setopt($this->initCurl(), CURLOPT_CUSTOMREQUEST, $this->requestType);
-        $success &= curl_setopt($this->initCurl(), CURLOPT_CUSTOMREQUEST, $bodyfields);
+        $success = curl_setopt($this->getCurlHandle(), CURLOPT_CUSTOMREQUEST, $this->requestType);
+        $success &= curl_setopt($this->getCurlHandle(), CURLOPT_POSTFIELDS, $bodyfields);
 
         return (bool) $success;
     }
