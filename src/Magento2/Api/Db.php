@@ -348,9 +348,9 @@ class Db implements ServiceLocatorAwareInterface
     protected function getOrdersFromDatabase(\Zend\Db\Sql\Select $select)
     {
         if ($this->orderColumns) {
-            $select->orderColumns($this->orderColumns);
+            $select->columns($this->orderColumns);
         }
-        $results = $this->getTableGateway('sales_flat_order')->selectWith($select);
+        $results = $this->getTableGateway('sales_order')->selectWith($select);
 
         $data = array();
         foreach ($results as $row) {
