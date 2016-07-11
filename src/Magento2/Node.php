@@ -214,12 +214,12 @@ class Node extends AbstractNode
                 break;
             // ToDo: Check creditmemo functionality. Stays disabled for now.
             case 'creditmemo':
-                $gateway = null;
+                $gateway = NULL;
                 //$gateway = new Gateway\CreditmemoGateway;
                 break;
             default:
-                $gateway = null;
                 throw new SyncException('Unknown/invalid entity type '.$entityType);
+                $gateway = NULL;
         }
 
         return $gateway;
