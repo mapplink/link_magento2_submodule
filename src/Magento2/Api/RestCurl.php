@@ -13,9 +13,13 @@ namespace Magento2\Api;
 use Log\Service\LogService;
 use Magelink\Exception\MagelinkException;
 use Magento2\Node;
+use Zend\Http\Client;
+use Zend\Http\Headers;
+use Zend\Http\Request;
 use Zend\Json\Json;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
+use Zend\Stdlib\Parameters;
 
 
 abstract class RestCurl implements ServiceLocatorAwareInterface
@@ -27,12 +31,14 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
 
     /** @var resource|FALSE|NULL $this->curlHandle */
     protected $curlHandle = NULL;
-    /** @var string|NULL $this->header */
-    protected $header = NULL;
-    /** @var string $this->authorisation */
+    /** @var string|NULL $this->authorisation */
     protected $authorisation = NULL;
-    /** @var string $this->requestType */
+    /** @var string|NULL $this->requestType */
     protected $requestType;
+    /** @var  Request $this->request */
+    protected $request;
+    /** @var array $this->curlOptions */
+    protected $curlOptions = array();
     /** @var array $this->baseCurlOptions */
     protected $baseCurlOptions = array(
         CURLOPT_RETURNTRANSFER=>TRUE,
@@ -42,13 +48,6 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
         CURLOPT_HTTP_VERSION=>CURL_HTTP_VERSION_1_1
     );
 
-    /**
-     * Rest constructor
-     */
-    public function __construct()
-    {
-        $this->initCurl();
-    }
 
     /**
      * Rest destructor
@@ -85,6 +84,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     }
 
     /**
+     * @param array $headers
      * @return string $initLogCode
      */
     abstract protected function getLogCodePrefix();
@@ -92,24 +92,39 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     /**
      * @return FALSE|NULL|resource $this->curlHandle
      */
-    protected function initCurl()
-    {
-        $this->getCurlHandle();
-        curl_setopt_array($this->curlHandle, $this->baseCurlOptions);
-
-        return $this->curlHandle;
-    }
-
-    /**
-     * @return FALSE|NULL|resource $this->curlHandle
-     */
-    protected function getCurlHandle()
+    protected function initCurl(array $headers)
     {
         if (is_null($this->curlHandle)) {
             $this->curlHandle = curl_init();
         }
 
+        $this->curlOptions = array_replace_recursive(
+            $this->baseCurlOptions,
+            array(CURLOPT_HTTPHEADER=>$this->getHeaders($headers))
+        );
+
         return $this->curlHandle;
+    }
+
+    /**
+     * @param array $headers
+     * @return bool $success
+     */
+    public function getHeaders(array $headers)
+    {
+        $cacheControl = 'cache-control: no-cache';
+
+        foreach ($headers as $line) {
+            if (strpos($line, strstr($cacheControl, ':').':') !== FALSE) {
+                $cacheControl = FALSE;
+                break;
+            }
+        }
+        if ($cacheControl) {
+            $headers[] = $cacheControl;
+        }
+
+        return $headers;
     }
 
     /**
@@ -135,9 +150,12 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     {
         $logData = array(
             'request type'=>$this->requestType,
-            'header'=>$this->header,
-            'curl info'=>curl_getinfo($this->getCurlHandle())
+            'options'=>$this->curlOptions,
+            'curl info'=>curl_getinfo($this->curlHandle)
         );
+
+        curl_setopt_array($this->curlHandle, $this->curlOptions);
+        unset($this->curlOptions);
 
         $response = curl_exec($this->curlHandle);
         $error = $this->getError();
@@ -228,16 +246,17 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     protected function authorise()
     {
         if (is_null($this->authorisation)) {
+            // ToDo: Implemented Zend classes and methods
+            $headers = array('content-type: application/json');
+            $this->initCurl($headers);
+
             $url = $this->getUrl('integration/admin/token');
-            $this->setBaseurl($url);
+            $this->curlOptions[CURLOPT_URL] = $url;
 
-            $header = array('content-type: application/json');
-            $this->setHeader($header);
-
+            $this->curlOptions[CURLOPT_CUSTOMREQUEST] = $this->requestType =  'POST';
             $username = $this->node->getConfig('rest_username');
             $password = $this->node->getConfig('rest_password');
-            $postfields = '{"username":"'.$username.'", "password":"'.$password.'"}';
-            $this->setPostfields($postfields);
+            $this->curlOptions[CURLOPT_POSTFIELDS] =  '{"username":"'.$username.'", "password":"'.$password.'"}';
 
             $response = $this->executeCurl('Authorisation');
 
@@ -259,21 +278,35 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      */
     protected function call($httpMethod, $callType, array $parameters = array())
     {
-        $this->initCurl();
         $this->authorise();
 
-        $header = array('authorisation: '.$this->authorisation, 'content-type: application/json');
-        $httpMethod = strtoupper($httpMethod);
-        $method = 'set'.ucfirst(strtolower($httpMethod)).'fields';
+        $headers = array('authorisation: '.$this->authorisation, 'content-type: application/json');
+        $this->requestType = strtoupper($httpMethod);
+        $setRequestDataMethod = 'set'.ucfirst(strtolower($httpMethod)).'fields';
 
-        $this->initCurl();
-        $this->setBaseurl($this->getUrl($callType));
-        $this->setHeader($header);
-        $this->$method($parameters);
+        $headers = new Headers();
+        $headers->addHeaders([
+            'Authorization' => $this->authorisation,
+            'Accept'=>'application/json',
+            'Content-Type'=>'application/json'
+        ]);
 
-        $response = $this->executeCurl($callType);
+        $this->request = new Request();
+        $this->request->setHeaders($headers);
+        $this->request->setUri($this->getUrl($callType));
+        $this->request->setMethod($this->requestType);
+        $this->$setRequestDataMethod($parameters);
 
-        return $response;
+        $client = new Client();
+        $options = array(
+            'adapter'=>'Zend\Http\Client\Adapter\Curl',
+            'curloptions'=>[CURLOPT_FOLLOWLOCATION=>TRUE],
+            'maxredirects'=>0,
+            'timeout'=>30
+        );
+        $client->setOptions($options);
+
+        return $client->send($this->request);
     }
 
     /**
@@ -282,8 +315,8 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      */
     public function delete($callType)
     {
-        $response = $this->call('DELETE', $callType);
-        // @todo
+        $response = $this->call(Request::METHOD_DELETE, $callType);
+
         return $response;
     }
 
@@ -294,7 +327,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      */
     public function get($callType, array $parameters = array())
     {
-        $response = $this->call('GET', $callType, $parameters);
+        $response = $this->call(Request::METHOD_GET, $callType, $parameters);
 
         if (is_array($response) && array_key_exists('items', $response)) {
             $response = $response['items'];
@@ -310,8 +343,8 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      */
     public function post($callType, array $parameters = array())
     {
-        $response = $this->call('POST', $callType, $parameters);
-        // @todo
+        $response = $this->call(Request::METHOD_POST, $callType, $parameters);
+
         return $response;
     }
 
@@ -322,43 +355,9 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      */
     public function put($callType, array $parameters = array())
     {
-        $response = $this->call('PUT', $callType, $parameters);
+        $response = $this->call(Request::METHOD_PUT, $callType, $parameters);
         // @todo
         return $response;
-    }
-
-    /**
-     * @param array $header
-     * @return bool $success
-     */
-    public function setHeader(array $header)
-    {
-        $cacheControl = 'cache-control: no-cache';
-
-        foreach ($header as $line) {
-            if (strpos($line, strstr($cacheControl, ':').':') !== FALSE) {
-                $cacheControl = FALSE;
-                break;
-            }
-        }
-
-        if ($cacheControl) {
-            $header[] = $cacheControl;
-        }
-
-        $this->header = $header;
-
-        return curl_setopt($this->getCurlHandle(), CURLOPT_HTTPHEADER, $header);
-    }
-
-    /**
-     * @param string $url
-     * @return bool $success
-     */
-    public function setBaseurl($url)
-    {
-var_dump($url);
-        return curl_setopt($this->getCurlHandle(), CURLOPT_URL, $url);
     }
 
     /**
@@ -369,11 +368,9 @@ var_dump($url);
     {
         $success = FALSE;
 
-        $url = curl_getinfo($this->getCurlHandle(), CURLINFO_EFFECTIVE_URL);
         if (!is_null($this->requestType)) {
             if (isset($urlParameters['filter']) && is_array($urlParameters['filter'])) {
-                $parameters = '';
-                $concatCharacter = '?';
+                $parameters = array();
 
                 foreach ($urlParameters['filter'] as $filterKey=>$filter) {
                     foreach ($filter as $key=>$value) {
@@ -397,16 +394,16 @@ var_dump($url);
                             $parameters = array();
                             break;
                         }else {
-                            $parameters .= $concatCharacter.htmlentities('searchCriteria[filterGroups][0]'
-                                .'[filters]['.$filterKey.']['.$key.']='.$value);
+                            $parameters['searchCriteria']['filterGroups'][0]['filters'][$filterKey][$key] = $value;
                         }
-                        $concatCharacter = '&';
                     }
 
                     if (count($urlParameters) != 0) {
-                        $success = $this->setBaseurl($url.$parameters);
-                        $success &= curl_setopt($this->getCurlHandle(), CURLOPT_CUSTOMREQUEST, $this->requestType);
-                        $success &= curl_setopt($this->getCurlHandle(), CURLOPT_POSTFIELDS, '');
+                        $success = TRUE;
+                        $parameterObject = new Parameters($parameters);
+                        $success = $this->request->setQuery($parameterObject);
+                    }else{
+
                     }
                 }
             }else{
@@ -423,10 +420,7 @@ var_dump($url);
      */
     public function setDeletefields($deletefields)
     {
-        $this->requestType = 'DELETE';
-        $success = $this->setUrlParameters($deletefields);
-
-        return (bool) $success;
+        return $this->setUrlParameters($deletefields);
     }
 
     /**
@@ -435,24 +429,7 @@ var_dump($url);
      */
     public function setGetfields(array $getfields)
     {
-        $this->requestType = 'GET';
-        $success = $this->setUrlParameters($getfields);
-
-        return (bool) $success;
-    }
-
-    /**
-     * @param string $requestType
-     * @param string $bodyfields
-     * @return bool $success
-     */
-    protected function setBodyfields($requestType, $bodyfields)
-    {
-        $this->requestType = $requestType;
-        $success = curl_setopt($this->getCurlHandle(), CURLOPT_CUSTOMREQUEST, $this->requestType);
-        $success &= curl_setopt($this->getCurlHandle(), CURLOPT_POSTFIELDS, $bodyfields);
-
-        return (bool) $success;
+        return $this->setUrlParameters($getfields);
     }
 
     /**
@@ -461,7 +438,7 @@ var_dump($url);
      */
     protected function setPostfields($postfields)
     {
-        return $this->setBodyfields('POST', $postfields);
+        return $this->request->setPost($postfields);
     }
 
     /**
