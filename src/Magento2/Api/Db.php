@@ -367,7 +367,7 @@ class Db implements ServiceLocatorAwareInterface
      */
     public function getOrderByIncrementId($orderIncrementId)
     {
-        $select = new \Zend\Db\Sql\Select('sales_flat_order');
+        $select = new \Zend\Db\Sql\Select('sales_order');
         $select->where(array('increment_id'=>array($orderIncrementId)));
 
         $data = $this->getOrdersFromDatabase($select);
@@ -390,7 +390,7 @@ class Db implements ServiceLocatorAwareInterface
      */
     public function getOrders($storeId = FALSE, $updatedSince = FALSE, $updatedTo = FALSE, array $orderIds = array())
     {
-        $select = new \Zend\Db\Sql\Select('sales_flat_order');
+        $select = new \Zend\Db\Sql\Select('sales_order');
         $where = new Where();
 
         if ($storeId !== FALSE) {
