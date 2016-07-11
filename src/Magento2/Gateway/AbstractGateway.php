@@ -13,8 +13,6 @@ namespace Magento2\Gateway;
 use Magelink\Exception\MagelinkException;
 use Magelink\Exception\GatewayException;
 use Node\AbstractGateway as BaseAbstractGateway;
-use Node\AbstractNode;
-use Node\Entity;
 
 
 abstract class AbstractGateway extends BaseAbstractGateway
