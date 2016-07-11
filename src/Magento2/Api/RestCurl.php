@@ -47,6 +47,13 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
         CURLOPT_TIMEOUT=>30,
         CURLOPT_HTTP_VERSION=>CURL_HTTP_VERSION_1_1
     );
+    /** @var array $this->clientOptions */
+    protected $clientOptions = array(
+        'adapter'=>'Zend\Http\Client\Adapter\Curl',
+        'curloptions'=>array(CURLOPT_FOLLOWLOCATION=>TRUE),
+        'maxredirects'=>0,
+        'timeout'=>30
+    );
 
 
     /**
@@ -298,13 +305,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
         $this->$setRequestDataMethod($parameters);
 
         $client = new Client();
-        $options = array(
-            'adapter'=>'Zend\Http\Client\Adapter\Curl',
-            'curloptions'=>[CURLOPT_FOLLOWLOCATION=>TRUE],
-            'maxredirects'=>0,
-            'timeout'=>30
-        );
-        $client->setOptions($options);
+        $client->setOptions($this->clientOptions);
 
         return $client->send($this->request);
     }
