@@ -27,6 +27,8 @@ class ProductGateway extends AbstractGateway
     const GATEWAY_ENTITY = 'product';
     const GATEWAY_ENTITY_CODE = 'p';
 
+    // ToDo: Move mapping to config
+    /** @var array self::$colourById */
     protected static $colourById = array(93=>'Alabaster', 94=>'AmG/Gran', 95=>'AmGr/Blk', 96=>'AmGrn', 97=>'Am/Car',
         98=>'Am/Des', 99=>'Aniseed', 100=>'Army', 101=>'ArmyGran', 102=>'ArmyGreen', 103=>'Ash', 104=>'Beige', 105=>'Black',
         106=>'BlackCroc', 107=>'BlackMagic', 108=>'BlackMarle', 109=>'BlackPony', 110=>'BlackSheep', 111=>'BlackTwill',
@@ -110,6 +112,19 @@ class ProductGateway extends AbstractGateway
         612=>'Lacquer', 613=>'Natural', 614=>'Negative', 615=>'Phantom', 616=>'Positive', 617=>'Smudge', 618=>'Volcanic',
         619=>'WhiteDove', 620=>'Zinc');
 
+    // ToDo: Move mapping to config
+    /** @var array self::$sizeById */
+    protected static $sizeById = array(4=>'36', 5=>'36.5', 6=>'37', 7=>'37.5', 8=>'38', 9=>'38.5', 10=>'39', 11=>'39.5',
+        12=>'40', 13=>'40.5', 14=>'41', 15=>'41.5', 16=>'42', 17=>'42.5', 18=>'43', 19=>'44', 20=>'52', 21=>'55', 22=>'57',
+        23=>'67', 24=>'8mm', 25=>'K', 26=>'K.5', 27=>'Q', 28=>'1', 29=>'2', 30=>'3', 31=>'4', 32=>'28', 33=>'46', 34=>'48',
+        35=>'50', 36=>'65', 37=>'49', 38=>'61', 39=>'63', 40=>'Zero', 41=>'11', 42=>'13', 43=>'20', 44=>'21', 45=>'22',
+        46=>'23', 47=>'24', 48=>'25', 49=>'26', 50=>'27', 51=>'29', 52=>'30', 53=>'31', 54=>'32', 55=>'33', 56=>'34',
+        57=>'35', 58=>'45', 59=>'5', 60=>'6', 61=>'7', 62=>'8.5', 63=>'9', 64=>'9.5', 65=>'T1/2', 66=>'L1/2', 67=>'O',
+        68=>'22.5', 69=>'23.5', 70=>'24.5', 71=>'25.5', 72=>'4.5', 73=>'5.5', 74=>'6.5', 75=>'35.5', 76=>'7.5', 77=>'O/S',
+        78=>'XS', 79=>'8', 80=>'10', 81=>'S', 82=>'M', 83=>'12', 84=>'14', 85=>'L', 86=>'XL', 87=>'16', 88=>'XXL', 89=>'P',
+        90=>'N', 91=>'15', 92=>'N/A');
+
+
     /**
      * Initialize the gateway and perform any setup actions required.
      * @param string $entityType
@@ -154,29 +169,34 @@ class ProductGateway extends AbstractGateway
      */
     public static function getColourString($colourId)
     {
-        if (array_key_exists($colourId, self::$colourById)) {
-            $colourString = self::$colourById[$colourId];
-        }else{
-            $colourString = NULL;
-        }
-
-        return $colourString;
+        return self::getMappedString('colour', $colourId);
     }
 
     /**
      * @param int $colourString
-     * @return int|NULL $retailExpressColourId
+     * @return int|NULL $colourId
      */
     public static function getColourId($colourString)
     {
-        if (in_array($colourString, self::$colourById)) {
-            $idByColour = array_flip(self::$colourById);
-            $colourId = $idByColour[$colourString];
-        }else{
-            $colourId = NULL;
-        }
+        return self::getMappedId('colour', $colourString);
+    }
 
-        return $colourId;
+    /**
+     * @param $sizeId
+     * @return string|NULL $sizeString
+     */
+    public static function getSizeString($sizeId)
+    {
+        return self::getMappedString('size', $sizeId);
+    }
+
+    /**
+     * @param int $sizeString
+     * @return int|NULL $sizeId
+     */
+    public static function getSizeId($sizeString)
+    {
+        return self::getMappedId('size', $sizeString);
     }
 
     /**
