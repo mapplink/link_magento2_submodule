@@ -27,6 +27,89 @@ class ProductGateway extends AbstractGateway
     const GATEWAY_ENTITY = 'product';
     const GATEWAY_ENTITY_CODE = 'p';
 
+    protected static $colourById = array(93=>'Alabaster', 94=>'AmG/Gran', 95=>'AmGr/Blk', 96=>'AmGrn', 97=>'Am/Car',
+        98=>'Am/Des', 99=>'Aniseed', 100=>'Army', 101=>'ArmyGran', 102=>'ArmyGreen', 103=>'Ash', 104=>'Beige', 105=>'Black',
+        106=>'BlackCroc', 107=>'BlackMagic', 108=>'BlackMarle', 109=>'BlackPony', 110=>'BlackSheep', 111=>'BlackTwill',
+        112=>'Black/Black', 113=>'Black/Blue', 114=>'Black/Brass', 115=>'Black/Burg.Gingham', 116=>'Black/Burgundy',
+        117=>'Black/Char.Lurex', 118=>'Black/Charcoal', 119=>'Black/Check', 120=>'Black/Dark', 121=>'Black/Fluoro',
+        122=>'Black/Glow', 123=>'Black/Gold', 124=>'Black/Green', 125=>'Black/Grey', 126=>'Black/Ink', 127=>'Black/Light',
+        128=>'Black/Multi', 129=>'Black/Org', 130=>'Black/Pearl', 131=>'Black/Pink', 132=>'Black/Pitch', 133=>'Black/PitchTartan',
+        134=>'Black/Plum', 135=>'Black/Pop', 136=>'Black/Poppy', 137=>'Black/Purple', 138=>'Black/Red', 139=>'Black/Silver',
+        140=>'Black/Tartan', 141=>'Black/Violet', 142=>'Black/White', 143=>'Black/Yellow', 144=>'Blackball', 145=>'Blackboard',
+        146=>'Blackcheck', 147=>'Blacken', 148=>'Blackfelt', 149=>'Blackfelt/Leather', 150=>'Blackout', 151=>'Blackpool',
+        152=>'Blackstretch', 153=>'Blacksuit', 154=>'Blackwash', 155=>'Blackwax', 156=>'BlackYellow', 157=>'Bleach',
+        158=>'Blk/Rattlesnake', 159=>'BloodStone', 160=>'BluChk', 161=>'Blue', 162=>'BlueLogo', 163=>'BlueMix', 164=>'BlueTartan',
+        165=>'Bluegum/Licorice', 166=>'Bluescreen', 167=>'Blush', 168=>'Bonded', 169=>'Brass', 170=>'Brass/Black',
+        171=>'Brass/Brass', 172=>'Brick', 173=>'Bronze', 174=>'Brown', 175=>'BrownLogo', 176=>'BrownMulti', 177=>'BrownSnake',
+        178=>'BrownTartan', 179=>'Brownie', 180=>'Buff', 181=>'Burg.Ging/Espresso', 182=>'Burgundy', 183=>'BurgundyGingham',
+        184=>'Burgundy/Black', 185=>'Burgundy/Espresso', 186=>'Burgundy/Gingham', 187=>'Camo', 188=>'Candy', 189=>'Carbon',
+        190=>'CargoGreen', 191=>'Caviar', 192=>'CharGran', 193=>'CharTri', 194=>'Char/Utility', 195=>'Charcoal', 196=>'Cherry',
+        197=>'Chilli', 198=>'Coffee', 199=>'Coral', 200=>'Cream', 201=>'CrystalBlackC', 202=>'CrystalWhiteC', 203=>'Crystal/Pcorn',
+        204=>'Crystal/Walnut', 205=>'DarkBlue', 206=>'DarkBrown', 207=>'DarkDust', 208=>'DarkTweed', 209=>'DarlIndigo',
+        210=>'Dash/Black', 211=>'Delft', 212=>'Desert', 213=>'DesertMix', 214=>'DesertPJ', 215=>'DesertUtilityMix', 216=>'Dusk',
+        217=>'Ebony', 218=>'Ecru', 219=>'Electric', 220=>'Flesh', 221=>'Flint', 222=>'Floral', 223=>'Forest', 224=>'Fuchsia/Pop',
+        225=>'Fudge', 226=>'Glow', 227=>'Gold', 228=>'Green', 229=>'GreenMix', 230=>'Green/Grey', 231=>'Grey', 232=>'GreyMarle',
+        233=>'Grey/Blue', 234=>'Grey/Ink', 235=>'Grey/Navy', 236=>'Grey/Pink', 237=>'Grey/Purple', 238=>'Hands/Black',
+        239=>'HomemadeBlack', 240=>'Ice', 241=>'Indigo', 242=>'Ink', 243=>'Ink/Black', 244=>'Iron', 245=>'Jade', 246=>'Jetblack',
+        247=>'Kelp', 248=>'Khaki', 249=>'Kidblack', 250=>'Lapis', 251=>'Lateshow', 252=>'Lavender', 253=>'LightGrey',
+        254=>'LightMix', 255=>'Lime', 256=>'Logo', 257=>'MadWax', 258=>'Magenta', 259=>'Mahogany', 260=>'Maroon',
+        261=>'MattBlack', 262=>'MattGrey', 263=>'Melon', 264=>'Metal', 265=>'Midnight', 266=>'Midnight/Black', 267=>'Military',
+        268=>'Milk', 269=>'MixedChk', 270=>'Monster', 271=>'Multi', 272=>'Mushroom', 273=>'Mustard', 274=>'N/A', 275=>'Navy',
+        276=>'NavyCheck', 277=>'Navy/Black', 278=>'Navy/Ivory', 279=>'Navy/White', 280=>'Nickel', 281=>'Noir', 282=>'Nori',
+        283=>'Olive', 284=>'Onyx', 285=>'Orange', 286=>'OrangeLogo', 287=>'OrangePony', 288=>'Oyster', 289=>'P/M/Pew',
+        290=>'P/M/Pink', 291=>'Paint/Black', 292=>'Papaya', 293=>'Passport', 294=>'Pearl', 295=>'Peat', 296=>'Peat/Black',
+        297=>'Petrol', 298=>'Petrol/Black', 299=>'Petrol/Charcoal', 300=>'Pew/Pk', 301=>'Pewt/Gran', 302=>'Pewt/Pewt',
+        303=>'Pewt/Tri', 304=>'Pewter', 305=>'Pewter/Pewter', 306=>'Pewter/Tri', 307=>'Pink', 308=>'PinkMix', 309=>'Pink/Tri',
+        310=>'Pirate', 311=>'Pitch', 312=>'PitchTartan', 313=>'PitchTartan/Black', 314=>'Pitch/Black', 315=>'Pitch/Tartan',
+        316=>'PJPrint', 317=>'Pk/Flor', 318=>'Pk/Pew', 319=>'Plum', 320=>'Plum/Black', 321=>'Plum/Espresso', 322=>'Plum/Gingham',
+        323=>'Pop/White', 324=>'Poppy', 325=>'Potion', 326=>'Print', 327=>'PrintMix', 328=>'Pumice', 329=>'Purple', 330=>'Quartz',
+        331=>'Raven', 332=>'Red', 333=>'RedMulti', 334=>'RedRose', 335=>'Red/Black', 336=>'Red/White', 337=>'RoseRed',
+        338=>'Rosewood', 339=>'Royal', 340=>'RoyalPony', 341=>'Safari', 342=>'Sapphire', 343=>'Sateen', 344=>'Satellite',
+        345=>'Scarlet', 346=>'Scuba', 347=>'Shadow', 348=>'Silver', 349=>'SilverMarle', 350=>'Silver/Gold', 351=>'Skeleton',
+        352=>'SkyPony', 353=>'Smoke', 354=>'Smoke/Black', 355=>'Smoke/Green', 356=>'Soap', 357=>'Steel', 358=>'Steel/Black',
+        359=>'Steel/Sil', 360=>'String', 361=>'Stripe/Black', 362=>'T-Shell', 363=>'Tar', 364=>'Tartan', 365=>'Thunder',
+        366=>'Tidal', 367=>'Tortoise', 368=>'Truffle', 369=>'Tweed', 370=>'U/Pewt', 371=>'UtilityGreen', 372=>'UtilityGrn',
+        373=>'Utility/Pk', 374=>'Vamp', 375=>'VintageBlack', 376=>'White', 377=>'White/Black', 378=>'White/Blue',
+        379=>'White/Green', 380=>'White/Multi', 381=>'White/Navy', 382=>'White/Red', 383=>'Whitewash', 384=>'Yellow',
+        385=>'ZambesiBlack', 386=>'BlackDiamond', 387=>'BlackDiamond/Blk', 388=>'Black/Pumice', 389=>'BottlePrism',
+        390=>'BottlePrism/Black', 391=>'Burgundy/Dusk', 392=>'Burgundy/Red', 393=>'DiamondMixPrint', 394=>'Dusk/Storm',
+        395=>'GreenDiamond', 396=>'Green/Green', 397=>'Green/Storm', 398=>'Orange/Pumice', 399=>'Orange/Red',
+        400=>'PrismMixPrint', 401=>'RedPrism', 402=>'Red/Orange', 403=>'Storm', 404=>'Navy/Bleach', 405=>'Navy/Yellow',
+        406=>'Plaid', 407=>'Grey/Black', 408=>'Grey/Burgundy', 409=>'Stripe', 410=>'BlackRussian', 411=>'Blood', 412=>'Tear',
+        13=>'BlkRhodium', 414=>'OxidisedSilver', 415=>'9ctGold', 416=>'Glass/Silver', 417=>'Resin/Petals', 418=>'SterlingSilver',
+        419=>'Blue/White', 420=>'Black/Print', 421=>'BlueSlate', 422=>'BlueSlate/Black', 423=>'CharcoalMarle',
+        424=>'Indigo/Black', 425=>'Inkpen', 426=>'Inkpen/Black', 427=>'Licorice', 428=>'Licorice/Black', 429=>'Licorice/Steel',
+        430=>'Oil', 431=>'Stone', 432=>'Stone/Black', 433=>'NavyStripe', 434=>'Ashphalt/Tarseal', 435=>'Black/Cream', 436=>'Coal',
+        437=>'Electric/Tarseal', 438=>'Jetsam', 439=>'Mauve', 440=>'Mauve/Cream', 441=>'Navy/Cream', 442=>'Neo', 443=>'Vanilla',
+        444=>'Violet', 445=>'Bone', 446=>'Graphite', 447=>'Rust', 448=>'Spec', 449=>'Syrah', 450=>'10K/Diamond',
+        451=>'10K/Emerald', 452=>'10K/Ruby', 453=>'10K/Silver/Dia', 454=>'10K/Silver/Ruby', 455=>'18K', 456=>'Silver/Emerald',
+        457=>'Stars', 458=>'Stripe/DarkGrey', 459=>'Stripe/Khaki', 460=>'BlackSpots', 461=>'BlueSpot', 462=>'PatternBlack',
+        463=>'Frostbite', 464=>'Uzi', 465=>'Black/Natural', 466=>'Natural/Black', 467=>'Bonfire', 468=>'Gothic', 469=>'Lotus',
+        470=>'PaleBlue', 471=>'DarkDust', 472=>'Rose', 473=>'BlackScrub', 474=>'Black/Navy', 475=>'Blk/Blk/Floral',
+        476=>'Cream/Black', 477=>'Graphic/Yellow', 478=>'Gingham/Black', 479=>'Ballet', 480=>'BasicBlack', 481=>'BlackEmblem',
+        482=>'BlackEyelet', 483=>'BlackVeil', 484=>'Black/Nickel', 485=>'Blacklawn', 486=>'Blacksand', 487=>'Crystal',
+        488=>'Decoritif', 489=>'Emblem', 490=>'Fog', 491=>'InkTattoo', 492=>'Ivory', 493=>'Jet', 494=>'KholTattoo',
+        495=>'Marshmellow', 496=>'Mesh', 497=>'Mist', 498=>'NavyEmblem', 499=>'Porcelain', 500=>'Saphire', 501=>'SilverEyelet',
+        502=>'Taupe', 503=>'ThinStripe', 504=>'TripleStripe', 505=>'WhiteEmblem', 506=>'WhiteEyelet', 507=>'WhiteVeil',
+        508=>'Whitelawn', 509=>'Anthracite', 510=>'BlackHAHA', 511=>'BlackPutty', 512=>'Dove', 513=>'HAHA', 514=>'HAHAX',
+        515=>'Nude', 516=>'Putty', 517=>'PuttyBlack', 518=>'RedSlate', 519=>'Slate', 520=>'X', 521=>'Green/White',
+        522=>'LightOrange', 523=>'Orange/Pink', 524=>'Pink/Yellow', 525=>'Yellow/Orange', 526=>'DarkDusk', 527=>'Dust',
+        528=>'DarkAnimal', 529=>'LightAnimal', 530=>'Black/Stripe', 531=>'Ecru/Black', 532=>'Grey/Green', 533=>'RedStripe',
+        534=>'GreenStripe', 535=>'14ctGold', 536=>'Concrete', 537=>'Black/Blush', 538=>'BlackStripe', 539=>'Black/BlackPrint',
+        540=>'Black/Gothic', 541=>'Black/Lurex', 542=>'Black/Milk', 543=>'Black/PinkPrint', 544=>'Black/Wallpaper',
+        545=>'RedCheck', 546=>'Wallpaper', 547=>'Black/Putty', 548=>'Chambray', 549=>'Ashes', 550=>'BasicNavy', 551=>'BlackV',
+        552=>'Blackfleece', 553=>'Blackwood', 554=>'Brushblack', 555=>'Cloud', 556=>'Coaldust', 557=>'Dark', 558=>'DarkMix',
+        559=>'Drill', 560=>'Faux', 561=>'FineBlack', 562=>'Garnet', 563=>'Khol', 564=>'Labyrinth', 565=>'NavyFleece',
+        566=>'PaleMix', 567=>'Polish', 568=>'Ruby', 569=>'Spotlight', 570=>'Thunderbird', 571=>'YellowFleece',
+        572=>'BlueStripes', 573=>'FluroYellow', 574=>'NavyDots', 575=>'Orange/Print', 576=>'Black/Brown', 577=>'Navy/Stripe',
+        578=>'Pattern/Black', 579=>'Peach', 580=>'LightBlue', 581=>'Turquoise', 582=>'Chocolate', 583=>'OffWhite',
+        584=>'RainyMorning', 585=>'Black/Almond', 586=>'Palm', 587=>'BlackAngel', 588=>'BlackMix', 589=>'Chalk', 590=>'ClayCheck',
+        591=>'Covered', 592=>'DarkInk', 593=>'Flower', 594=>'InkAngel', 595=>'InkMix', 596=>'OliveAngel', 597=>'OliveMix',
+        598=>'Sand', 599=>'Skin', 600=>'Tapestry', 601=>'Lurex', 602=>'Alligator', 603=>'BasicGrey', 604=>'BlackFoil',
+        605=>'Blackadder', 606=>'Blackbird', 607=>'Charred', 608=>'Eclipse', 609=>'Emerald', 610=>'Greenacres', 611=>'Iceberg',
+        612=>'Lacquer', 613=>'Natural', 614=>'Negative', 615=>'Phantom', 616=>'Positive', 617=>'Smudge', 618=>'Volcanic',
+        619=>'WhiteDove', 620=>'Zinc');
+
     /**
      * Initialize the gateway and perform any setup actions required.
      * @param string $entityType
@@ -63,6 +146,37 @@ class ProductGateway extends AbstractGateway
         }
 
         return $success;
+    }
+
+    /**
+     * @param $colourId
+     * @return string|NULL $colourString
+     */
+    public static function getColourString($colourId)
+    {
+        if (array_key_exists($colourId, self::$colourById)) {
+            $colourString = self::$colourById[$colourId];
+        }else{
+            $colourString = NULL;
+        }
+
+        return $colourString;
+    }
+
+    /**
+     * @param int $colourString
+     * @return int|NULL $retailExpressColourId
+     */
+    public static function getColourId($colourString)
+    {
+        if (in_array($colourString, self::$colourById)) {
+            $idByColour = array_flip(self::$colourById);
+            $colourId = $idByColour[$colourString];
+        }else{
+            $colourId = NULL;
+        }
+
+        return $colourId;
     }
 
     /**
