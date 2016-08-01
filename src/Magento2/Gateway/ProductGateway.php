@@ -641,12 +641,12 @@ class ProductGateway extends AbstractGateway
             $data['short_description'] = NULL;
         }
         if (isset($rawData['status'])) {
-            $data['enabled'] =($rawData['status'] == 1) ? 1 : 0;
+            $data['enabled'] = ($rawData['status'] == 1) ? 1 : 0;
         }else{
             $data['enabled'] = 0;
         }
         if (isset($rawData['visibility'])) {
-            $data['visible'] =($rawData['visibility'] == 4) ? 1 : 0;
+            $data['visible'] = ($rawData['visibility'] == 4) ? 1 : 0;
         }else{
             $data['visible'] = 0;
         }
@@ -656,7 +656,7 @@ class ProductGateway extends AbstractGateway
             $data['price'] = NULL;
         }
         if (isset($rawData['tax_class_id'])) {
-            $data['taxable'] =($rawData['tax_class_id'] == 2) ? 1 : 0;
+            $data['taxable'] = ($rawData['tax_class_id'] == 2) ? 1 : 0;
         }else{
             $data['taxable'] = 0;
         }
