@@ -163,7 +163,7 @@ class CustomerGateway extends AbstractGateway
                 }
 */
                 if (isset($this->customerGroups[intval($customer->group_id)])) {
-                    $data['customer_type'] = $this->customerGroups[intval($customer->group_id)]['customer_group_code'];
+                    $data['customer_type'] = $this->customerGroups[intval($customer->group_id)]['code'];
                 }else{
                     $this->getServiceLocator()->get('logService')
                         ->log(LogService::LEVEL_WARN,
@@ -276,7 +276,8 @@ class CustomerGateway extends AbstractGateway
     {
         $data = array();
 
-        foreach ($customer['addresses'] as $address) {
+        foreach ($customer->addresses as $addressObject) {
+            $address = (array) $addressObject;
             if ($address['default_billing']) {
                 $data['billing_address'] = $this->createAddressEntity($address, $customer, 'billing', $entityService);
             }
@@ -295,21 +296,21 @@ class CustomerGateway extends AbstractGateway
      * Create an individual Address entity for a customer
      *
      * @param array $addressData
-     * @param array $customer
+     * @param object $customer
      * @param string $type "billing" or "shipping"
      * @param EntityService $entityService
      * @return \Entity\Entity|NULL $addressEntity
      * @throws MagelinkException
      * @throws NodeException
      */
-    protected function createAddressEntity(array $addressData, array $customer, $type, EntityService $entityService)
+    protected function createAddressEntity(array $addressData, $customer, $type, EntityService $entityService)
     {
-        $uniqueId = 'cust-'.$customer['customer_id'].'-'.$type;
+        $uniqueId = 'cust-'.$customer->id.'-'.$type;
 
         $addressEntity = $entityService->loadEntity(
             $this->_node->getNodeId(),
             'address',
-            ($this->_node->isMultiStore() ? $customer['store_id'] : 0),
+            ($this->_node->isMultiStore() ? $customer->store_id : 0),
             $uniqueId
         );
 
@@ -321,7 +322,7 @@ class CustomerGateway extends AbstractGateway
             'suffix'=>(isset($addressData['suffix']) ? $addressData['suffix'] : NULL),
             'street'=>(isset($addressData['street']) ? $addressData['street'] : NULL),
             'city'=>(isset($addressData['city']) ? $addressData['city'] : NULL),
-            'region'=>(isset($addressData['region']['region']) ? $addressData['region']['region'] : NULL),
+            'region'=>(isset($addressData['region']) ? $addressData['region'] : NULL),
             'postcode'=>(isset($addressData['postcode']) ? $addressData['postcode'] : NULL),
             'country_code'=>(isset($addressData['country_id']) ? $addressData['country_id'] : NULL),
             'telephone'=>(isset($addressData['telephone']) ? $addressData['telephone'] : NULL),
@@ -332,7 +333,7 @@ class CustomerGateway extends AbstractGateway
             $addressEntity = $entityService->createEntity(
                 $this->_node->getNodeId(),
                 'address',
-                ($this->_node->isMultiStore() ? $customer['store_id'] : 0),
+                ($this->_node->isMultiStore() ? $customer->store_id : 0),
                 $uniqueId, $data
             );
             $entityService->linkEntity($this->_node->getNodeId(), $addressEntity, $addressData['id']);
