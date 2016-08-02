@@ -56,8 +56,8 @@ class CustomerGateway extends AbstractGateway
             }
 
             $this->customerGroups = array();
-            foreach ($groups as $groupArray) {
-                $this->customerGroups[$groupArray->customer_group_id] = (array) $groupArray;
+            foreach ($groups as $group) {
+                $this->customerGroups[$group->id] = (array) $group;
             }
         }
 
