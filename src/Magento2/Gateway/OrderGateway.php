@@ -407,7 +407,7 @@ class OrderGateway extends AbstractGateway
                 $data['customer'] = $customer;
             }else{
                 $data['customer'] = NULL;
-                // @todo : Should never be the case, exception handling neccessary
+                // TECHNICAL DEBT // ToDo: Should never be the case, exception handling neccessary
             }
         }
 
@@ -582,7 +582,7 @@ class OrderGateway extends AbstractGateway
         $success = NULL;
         if (FALSE && $this->db) {
             try{
-                // @todo (maybe): Implement
+                // TECHNICAL DEBT // ToDo (maybe): Implement
                 $storeId = $orderIds = FALSE;
                 $orders = $this->db->getOrders($storeId, $this->lastRetrieveDate, FALSE, $orderIds);
                 foreach ($orders as $order) {
@@ -775,7 +775,7 @@ class OrderGateway extends AbstractGateway
             foreach ($this->notRetrievedOrderIncrementIds as $localId=>$orderIncrementId) {
                 if (FALSE && $this->db) {
                     try {
-                        // @todo (maybe): Implemented
+                        // TECHNICAL DEBT // ToDo (maybe): Implemented
                         $orderData = (array) $this->db->getOrderByIncrementId($orderIncrementId);
                     }catch (\Exception $exception) {
                         // store as sync issue
@@ -1023,7 +1023,7 @@ class OrderGateway extends AbstractGateway
      */
     public function writeUpdates(\Entity\Entity $entity, $attributes, $type = \Entity\Update::TYPE_UPDATE)
     {
-        // @todo (unlikely): Create method. (We don't perform any direct updates to orders in this manner).
+        // TECHNICAL DEBT // ToDo (unlikely): Create method. (We don't perform any direct updates to orders in this manner).
         return;
     }
 
@@ -1165,7 +1165,7 @@ class OrderGateway extends AbstractGateway
                     $success = FALSE;
                 }
                 break;
-/*                // @todo (maybe): Implemented creditmemo action
+/*                // TECHNICAL DEBT // ToDo (maybe): Implemented creditmemo action
                 case 'creditmemo':
                 if (self::hasOrderStateProcessing($orderStatus) || $orderStatus == self::MAGENTO_STATUS_COMPLETE) {
                     $comment = ($action->hasData('comment') ? $action->getData('comment') : NULL);
@@ -1326,7 +1326,7 @@ class OrderGateway extends AbstractGateway
 
         $originalOrder = $order->getOriginalOrder();
         try {
-            /** @todo: Implement RestV1 call
+            /** TECHNICAL DEBT // ToDo: Implement RestV1 call
             $restResult = $this->restV1->call('salesOrderCreditmemoCreate', array(
                 $originalOrder->getUniqueId(),
                 $creditmemoData,
@@ -1358,7 +1358,7 @@ class OrderGateway extends AbstractGateway
         }
 
         try {
-            /** @todo: Implement RestV1 call
+            /** TECHNICAL DEBT // ToDo: Implement RestV1 call
             $this->restV1->call('salesOrderCreditmemoAddComment',
                 array($restResult, 'FOR ORDER: '.$order->getUniqueId(), FALSE, FALSE));
 */
@@ -1438,7 +1438,7 @@ class OrderGateway extends AbstractGateway
                     array('order'=>$order->getUniqueId(), 'tracking code'=>$trackingCode, 'rest response'=>$restResult)
                 );
 
-                // @todo (maybe): Store as a sync issue
+                // TECHNICAL DEBT // ToDo (maybe): Store as a sync issue
 
                 $shipmentLocalId = $trackingCode = NULL;
             }

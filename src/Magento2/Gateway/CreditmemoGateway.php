@@ -60,7 +60,7 @@ class CreditmemoGateway extends AbstractGateway
             );
 
         if (FALSE && $this->db) {
-            // @todo: Implement
+            // TECHNICAL DEBT // ToDo: Implement
         }elseif ($this->restV1) {
             try {
                 $results = $this->restV1->get('creditmemos', array(
@@ -378,7 +378,7 @@ class CreditmemoGateway extends AbstractGateway
                     /** @var \Entity\Service\EntityService $this->_entityService */
                     $this->_entityService = $this->getServiceLocator()->get('entityService');
                     $localId = $this->_entityService->getLocalId($this->_node->getNodeId(), $entity);
-                    // @todo: Does not seem to cancel to creditmemo
+                    // TECHNICAL DEBT // ToDo: Does not seem to cancel to creditmemo
                     $this->restV1->put('creditmemo/'.$localId, array());
                 }catch (\Exception $exception) {
                     // store as sync issue
@@ -470,13 +470,13 @@ class CreditmemoGateway extends AbstractGateway
                     $creditmemoData = $this->_entityService->addCurrencyFromBase($creditmemoData, $baseToCurrencyRate);
 
                     try {
-                        /** @todo: Check if Magento1 issue persists : Adjustment because of the conversion in
+                        /** TECHNICAL DEBT // ToDo: Check if Magento1 issue persists : Adjustment because of the conversion in
                          * Mage_Sales_Model_Order_Creditmemo_Api:165 (rounding issues likely) */
                         $storeCreditRefundAdjusted = $entity->getData('customer_balance_ref', 0) / $baseToCurrencyRate;
-                        /** @todo: Make it work correctly. Does not sync mback to order properly */
+                        /** TECHNICAL DEBT // ToDo: Make it work correctly. Does not sync mback to order properly */
                         $restResult = $this->restV1->post('creditmemo', array('entity'=>$creditmemoData));
                     }catch (\Exception $exception) {
-                        // @todo: What does 'store as sync issue' mean?
+                        // TECHNICAL DEBT // ToDo: What does 'store as sync issue' mean?
                         throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
                     }
 
@@ -604,7 +604,7 @@ class CreditmemoGateway extends AbstractGateway
                     break;
                 case 'cancel':
                     try {
-                        // @todo: Does not seem to work
+                        // TECHNICAL DEBT // ToDo: Does not seem to work
                         $this->restV1->put('creditmemo/'.$localId, array());
                         $success = TRUE;
                     }catch (\Exception $exception) {

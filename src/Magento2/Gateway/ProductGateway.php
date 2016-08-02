@@ -316,7 +316,7 @@ class ProductGateway extends AbstractGateway
                         }
 
                         foreach ($productsData as $productId=>$rawData) {
-                            // @todo: Combine this two methods into one
+                            // TECHNICAL DEBT // ToDo: Combine this two methods into one
                             $productData = $this->convertFromMagento($rawData, $additional);
                             $productData = $this->getServiceLocator()->get('magento2Service')
                                 ->mapProductData($productData, $storeId);
@@ -362,7 +362,7 @@ class ProductGateway extends AbstractGateway
                             array('combined data'=>$combinedData)
                         );
 
-                    $parentId = NULL; // @todo: Calculate
+                    $parentId = NULL; // TECHNICAL DEBT // ToDo: Calculate
 
                     try{
                         $this->processUpdate($productId, $sku, $storeId, $parentId, $combinedData);
@@ -374,7 +374,7 @@ class ProductGateway extends AbstractGateway
             }
         }elseif ($this->restV1) {
             $api = 'restV1';
-            // @todo : Multistore capability!
+            // TECHNICAL DEBT // ToDo: Multistore capability!
             $storeId = NULL;
             try {
                 $results = $this->restV1->get('product', array(
@@ -392,7 +392,7 @@ class ProductGateway extends AbstractGateway
                 $productId = $productData['product_id'];
                 $sku = $productData['sku'];
 
-                // @todo
+                // TECHNICAL DEBT // ToDo
                 $productData = array_merge(
                     $productData,
                     $this->loadFullProduct($sku, $storeId)
@@ -419,11 +419,11 @@ class ProductGateway extends AbstractGateway
                     unset($productData['']);
                 }
 
-                unset($productData['category_ids']); // @todo parse into categories
+                unset($productData['category_ids']); // TECHNICAL DEBT // ToDo parse into categories
                 unset($productData['website_ids']); // Not used
 
                 $productId = $productData['product_id'];
-                $parentId = NULL; // @todo: Calculate
+                $parentId = NULL; // TECHNICAL DEBT // ToDo: Calculate
                 $sku = $productData['sku'];
                 unset($productData['product_id']);
                 unset($productData['sku']);
@@ -734,7 +734,7 @@ class ProductGateway extends AbstractGateway
             $isCustomAttribute = in_array($code, $customAttributes);
             if ($isCustomAttribute) {
                 if (is_array($data[$code])) {
-                    // @todo(maybe) : Implement
+                    // TECHNICAL DEBT // ToDo(maybe) : Implement
                     throw new GatewayException("This gateway doesn't support multi_data custom attributes yet.");
                     $removeMultiData = FALSE;
                 }else{
@@ -854,14 +854,14 @@ class ProductGateway extends AbstractGateway
                     case 'size':
                         $data['size'] = self::getSizeId($value);
                         break;
-                    // @todo (maybe) : Add logic for this custom attributes
+                    // TECHNICAL DEBT // ToDo (maybe) : Add logic for this custom attributes
                     case 'brand':
                         // Ignore attributes
                         break;
                     case 'product_class':
                     case 'type':
                         if ($type != Update::TYPE_CREATE) {
-                            // @todo: Log error(but no exception)
+                            // TECHNICAL DEBT // ToDo: Log error(but no exception)
                         }else{
                             // Ignore attributes
                         }

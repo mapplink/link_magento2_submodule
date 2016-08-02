@@ -3,7 +3,6 @@
  * Implements DB access to Magento2 - loading and updating
  * @category Magento2
  * @package Magento2\Api
- * @author Matt Johnston
  * @author Andreas Gerhards <andreas@lero9.co.nz>
  * @copyright Copyright (c) 2014 LERO9 Ltd.
  * @license Commercial - All Rights Reserved
@@ -30,14 +29,12 @@ class Db implements ServiceLocatorAwareInterface
     protected $node;
     /** @var Adapter $this->adapter */
     protected $adapter;
-
     /** @var array $this->tableGateways */
     protected $tableGateways = array();
     /** @var array $this->entityTypes */
     protected $entityTypes = array();
     /** @var array $this->attributesByEntityType */
     protected $attributesByEntityType = array();
-
     /** @var bool $this->isEE */
     protected $isEE = FALSE;
     /** @var array $this->orderColumns */
@@ -480,7 +477,7 @@ class Db implements ServiceLocatorAwareInterface
     public function getNewsletterStatus($customerId)
     {
         $subscribed = FALSE;
-        // @todo: Implement proper use of Zend functionality
+        // TECHNICAL DEBT // ToDo: Implement proper use of Zend functionality
         $sql = "SELECT subscriber_id FROM newsletter_subscriber WHERE customer_id = ".$customerId
             ." AND subscriber_status IN (1, 4)";
         $this->debugSql($sql);
@@ -504,7 +501,7 @@ class Db implements ServiceLocatorAwareInterface
      */
     public function getChangedEntityIds($entityType, $changedSince)
     {
-        // @todo: Implement proper use of Zend functionality
+        // TECHNICAL DEBT // ToDo: Implement proper use of Zend functionality
         $sql = "SELECT entity_id FROM ".$this->getEntityPrefix($entityType)."_entity"
             ." WHERE updated_at >= '".$changedSince."';";
 
@@ -555,7 +552,7 @@ class Db implements ServiceLocatorAwareInterface
 
     /**
      * Update an entity in the Magento2 EAV system
-     * @todo Untested on multi-select / option type attributes.
+     * TECHNICAL DEBT // ToDo: Untested on multi-select / option type attributes.
      * @param string $entityType
      * @param int $entityId
      * @param int $storeId
@@ -904,7 +901,7 @@ class Db implements ServiceLocatorAwareInterface
 
             $attribute = $this->getAttribute($entityType, $code);
             if ($attribute == NULL) {
-                // @todo : throw new MagelinkException('Invalid Magento2 attribute code ' . $code . ' for ' . $entityType);
+                // TECHNICAL DEBT // ToDo: throw new MagelinkException('Invalid Magento2 attribute code ' . $code . ' for ' . $entityType);
             }else{
                 $table = $this->getAttributeTable($prefix, $attribute);
 
@@ -958,7 +955,7 @@ class Db implements ServiceLocatorAwareInterface
             case 'rma_item':
                 return 'enterprise_rma_item';
             default:
-                // @todo: Check : Maybe warn? This should be a safe default
+                // TECHNICAL DEBT // ToDo: Check : Maybe warn? This should be a safe default
                 return $entityType;
         }
     }

@@ -143,7 +143,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     {
         $url = trim($this->node->getConfig('web_url'), '/').static::REST_BASE_URI.$callType;
         if (count($parameters) > 0) {
-            // @todo include parameters
+            // TECHNICAL DEBT // ToDo include parameters
         }
 
         return $url;
@@ -365,7 +365,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     public function put($callType, array $parameters = array())
     {
         $response = $this->call(Request::METHOD_PUT, $callType, $parameters);
-        // @todo
+        // TECHNICAL DEBT // ToDo
         return $response;
     }
 
@@ -398,7 +398,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
                             );
                             $this->getServiceLocator()->get('logService')
                                 ->log(LogService::LEVEL_ERROR, $logCode, $logMessage, $logData);
-                            /** @todo */
+                            /** TECHNICAL DEBT // ToDo */
                             throw new MagelinkException($logMessage);
                             $parameters = array();
                             break;

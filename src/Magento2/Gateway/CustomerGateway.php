@@ -152,7 +152,7 @@ class CustomerGateway extends AbstractGateway
                     $data[$specialAtt] = (isset($customer['taxvat']) ? $customer['taxvat'] : NULL);
                 }
                 if (count($additionalAttributes) && $this->restV1) {
-                    // @todo: Extract extra information from the first REST call ($results)
+                    // TECHNICAL DEBT // ToDo: Extract extra information from the first REST call ($results)
                     foreach ($additionalAttributes as $attributeCode) {
                         if (array_key_exists($attributeCode, $extra)) {
                             $data[$attributeCode] = $extra[$attributeCode];
@@ -285,7 +285,7 @@ class CustomerGateway extends AbstractGateway
                 $data['shipping_address'] = $this->createAddressEntity($address, $customer, 'shipping', $entityService);
             }
             if (!isset($data['billing_address']) && !isset($data['shipping_address'])) {
-                // @todo: Store this maybe? For now ignore
+                // TECHNICAL DEBT // ToDo: Store this maybe? For now ignore
             }
         }
 
@@ -363,7 +363,7 @@ class CustomerGateway extends AbstractGateway
     {
         return FALSE;
 
-        // @todo: Implement writeUpdates() method.
+        // TECHNICAL DEBT // ToDo: Implement writeUpdates() method.
 
         /** @var \Entity\Service\EntityService $entityService */
 /*        $entityService = $this->getServiceLocator()->get('entityService');
@@ -388,7 +388,7 @@ class CustomerGateway extends AbstractGateway
             if (in_array($att, $additionalAttributes)) {
                 // Custom attribute
                 if (is_array($v)) {
-                    // @todo implement
+                    // TECHNICAL DEBT // ToDo implement
                     throw new MagelinkException('This gateway does not yet support multi_data additional attributes');
                 }else{
                     $data['additional_attributes']['single_data'][] = array(
@@ -416,12 +416,12 @@ class CustomerGateway extends AbstractGateway
                     break;
                 case 'customer_class':
                     if ($type != \Entity\Update::TYPE_CREATE) {
-                        // @todo log error (but no exception)
+                        // TECHNICAL DEBT // ToDo log error (but no exception)
                     }
                     break;
                 case 'type':
                     if ($type != \Entity\Update::TYPE_CREATE) {
-                        // @todo log error (but no exception)
+                        // TECHNICAL DEBT // ToDo log error (but no exception)
                     }
                     break;
                 case 'enabled':

@@ -77,7 +77,7 @@ class StockGateway extends AbstractGateway
             $sku = $product->getUniqueId();
 
             if (FALSE && $this->db) {
-                // @todo: Implement
+                // TECHNICAL DEBT // ToDo: Implement
 
             }elseif ($this->restV1) {
                 $stockitem = $this->restV1->get('stockItems/'.$sku, array());
