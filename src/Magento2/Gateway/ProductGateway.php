@@ -614,16 +614,36 @@ class ProductGateway extends AbstractGateway
      * @param array $additional Additional product attributes to load in
      * @return array
      */
-    protected function convertFromMagento($rawData, $additional) {
+    protected function convertFromMagento($rawData, $additional)
+    {
         $data = array();
+
+        if (isset($rawData['additional_attributes'])) {
+            foreach ($rawData['additional_attributes'] as $pair) {
+                $attributeCode = trim(strtolower($pair['key']));
+                if (!in_array($attributeCode, $additional)) {
+                    throw new GatewayException('Invalid attribute returned by Magento2: '.$attributeCode);
+                }
+                if (isset($pair['value'])) {
+                    $rawData[$attributeCode] = $pair['value'];
+                }else {
+                    $rawData[$attributeCode] = null;
+                }
+            }
+        }else{
+            foreach ($additional as $code) {
+                if (isset($rawData[$code])) {
+                    $data[$code] = $rawData[$code];
+                }
+            }
+        }
+
         if (isset($rawData['type_id'])) {
             $data['type'] = $rawData['type_id'];
+        }elseif (isset($rawData['type'])) {
+            $data['type'] = $rawData['type'];
         }else{
-            if (isset($rawData['type'])) {
-                $data['type'] = $rawData['type'];
-            }else{
-                $data['type'] = NULL;
-            }
+            $data['type'] = NULL;
         }
         if (isset($rawData['name'])) {
             $data['name'] = $rawData['name'];
@@ -679,24 +699,11 @@ class ProductGateway extends AbstractGateway
             $data['special_to_date'] = NULL;
         }
 
-        if (isset($rawData['additional_attributes'])) {
-            foreach ($rawData['additional_attributes'] as $pair) {
-                $attributeCode = trim(strtolower($pair['key']));
-                if (!in_array($attributeCode, $additional)) {
-                    throw new GatewayException('Invalid attribute returned by Magento2: '.$attributeCode);
-                }
-                if (isset($pair['value'])) {
-                    $data[$attributeCode] = $pair['value'];
-                }else{
-                    $data[$attributeCode] = NULL;
-                }
-            }
-        }else{
-            foreach ($additional as $code) {
-                if (isset($rawData[$code])) {
-                    $data[$code] = $rawData[$code];
-                }
-            }
+        if (isset($rawData['color'])) {
+            $data['color'] = self::getColour($rawData['color']);
+        }
+        if (isset($rawData['size'])) {
+            $data['size'] = self::getSize($rawData['size']);
         }
 
         return $data;
@@ -825,7 +832,12 @@ class ProductGateway extends AbstractGateway
                         $data[$code] = $value;
                         break;
                     case 'enabled':
-                        $data['status'] = ($value == 1 ? 1 : 2);
+                        if ($value < 0) {
+                            // Ignore status
+                            unset($data['status']);
+                        }else{
+                            $data['status'] = ($value == 1 ? 1 : 2);
+                        }
                         break;
                     case 'taxable':
                         $data['tax_class_id'] = ($value == 1 ? 2 : 1);
@@ -833,9 +845,14 @@ class ProductGateway extends AbstractGateway
                     case 'visible':
                         $data['visibility'] = ($value == 1 ? 4 : 1);
                         break;
+                    case 'color':
+                        $data['color'] = self::getColourId($value);
+                        break;
+                    case 'size':
+                        $data['size'] = self::getSizeId($value);
+                        break;
                     // @todo (maybe) : Add logic for this custom attributes
                     case 'brand':
-                    case 'size':
                         // Ignore attributes
                         break;
                     case 'product_class':
