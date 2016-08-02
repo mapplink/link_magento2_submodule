@@ -149,8 +149,8 @@ class ProductGateway extends AbstractGateway
             }
 
             $this->_attributeSets = array();
-            foreach ($attributeSets as $attributeSetArray) {
-                $this->_attributeSets[$attributeSetArray['set_id']] = $attributeSetArray;
+            foreach ($attributeSets as $attributeSet) {
+                $this->_attributeSets[$attributeSet->attribute_set_id] = (array) $attributeSet;
             }
 
             $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUG, $this->getLogCode().'_init',
