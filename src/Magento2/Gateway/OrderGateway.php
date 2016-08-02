@@ -585,8 +585,8 @@ class OrderGateway extends AbstractGateway
                 // @todo (maybe): Implement
                 $storeId = $orderIds = FALSE;
                 $orders = $this->db->getOrders($storeId, $this->lastRetrieveDate, FALSE, $orderIds);
-                foreach ($orders as $orderData) {
-                    $orderData = (array) $orderData;
+                foreach ($orders as $order) {
+                    $orderData = (array) $order;
                     if ($this->isOrderToBeRetrieved($orderData)) {
                         $success = $this->storeOrderData($orderData);
                     }
@@ -610,7 +610,8 @@ class OrderGateway extends AbstractGateway
                         'Retrieved salesOrderList updated from '.$this->lastRetrieveDate,
                         array('updated_at'=>$this->lastRetrieveDate, 'orders'=>$orders)
                     );
-                foreach ($orders as $orderData) {
+                foreach ($orders as $order) {
+                    $orderData = (array) $order;
                     if ($this->isOrderToBeRetrieved($orderData)) {
                         $this->storeOrderData($orderData);
                     }
