@@ -27,6 +27,9 @@ class ProductGateway extends AbstractGateway
     const GATEWAY_ENTITY = 'product';
     const GATEWAY_ENTITY_CODE = 'p';
 
+    /** @var array $this->attributeSets */
+    protected $attributeSets;
+
     // ToDo: Move mapping to config
     /** @var array self::$colourById */
     protected static $colourById = array(93=>'Alabaster', 94=>'AmG/Gran', 95=>'AmGr/Blk', 96=>'AmGrn', 97=>'Am/Car',
@@ -148,15 +151,15 @@ class ProductGateway extends AbstractGateway
                 $success = FALSE;
             }
 
-            $this->_attributeSets = array();
+            $this->attributeSets = array();
             foreach ($attributeSets as $attributeSet) {
-                $this->_attributeSets[$attributeSet->attribute_set_id] = (array) $attributeSet;
+                $this->attributeSets[$attributeSet->attribute_set_id] = (array) $attributeSet;
             }
 
             $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUG, $this->getLogCode().'_init',
                 'Initialised Magento2 product gateway.',
                 array('db api'=>(bool) $this->db, 'rest api'=>(bool) $this->restV1,
-                    'retrieved attributes'=>$attributeSets, 'stored attributes'=>$this->_attributeSets)
+                    'retrieved attributes'=>$attributeSets, 'stored attributes'=>$this->attributeSets)
             );
         }
 
@@ -302,8 +305,8 @@ class ProductGateway extends AbstractGateway
                         }
 
                         try{
-                            $productsData = $this->db
-                                ->loadEntitiesEav('catalog_product', array($localId), $storeId, $attributes);
+                            $productsData = $this->db->loadEntitiesEav(
+                                'catalog_product', array($localId), $storeId, $attributes);
                             $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUGEXTRA,
                                 $this->getLogCode().'_db_data', 'Loaded product data from Magento2 via DB api.',
                                 array('local id'=>$localId, 'store id'=>$storeId, 'data'=>$productsData)
@@ -332,10 +335,10 @@ class ProductGateway extends AbstractGateway
                             }
 
                             if (isset($rawData['attribute_set_id'])
-                                    && isset($this->_attributeSets[intval($rawData['attribute_set_id'])])) {
-                                $productData['product_class'] = $this->_attributeSets[intval(
+                                    && isset($this->attributeSets[intval($rawData['attribute_set_id'])])) {
+                                $productData['product_class'] = $this->attributeSets[intval(
                                     $rawData['attribute_set_id']
-                                )]['name'];
+                                )]['attribute_set_name'];
                             }else{
                                 $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_WARN,
                                     $this->getLogCode().'_db_noset',
@@ -400,8 +403,8 @@ class ProductGateway extends AbstractGateway
                     array('sku'=>$productData['sku'], 'data'=>$productData)
                 );
 
-                if (isset($this->_attributeSets[intval($productData['set']) ])) {
-                    $productData['product_class'] = $this->_attributeSets[intval($productData['set']) ]['name'];
+                if (isset($this->attributeSets[intval($productData['set']) ])) {
+                    $productData['product_class'] = $this->attributeSets[intval($productData['set']) ]['name'];
                     unset($productData['set']);
                 }else{
                     $this->getServiceLocator()->get('logService')
@@ -1035,7 +1038,7 @@ class ProductGateway extends AbstractGateway
                     if ($type == Update::TYPE_CREATE) {
 
                         $attributeSet = NULL;
-                        foreach ($this->_attributeSets as $setId=>$set) {
+                        foreach ($this->attributeSets as $setId=>$set) {
                             if ($set['name'] == $entity->getData('product_class', 'default')) {
                                 $attributeSet = $setId;
                                 break;
