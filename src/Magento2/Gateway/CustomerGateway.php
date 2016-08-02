@@ -179,9 +179,9 @@ class CustomerGateway extends AbstractGateway
                 if ($this->_node->getConfig('load_full_customer')) {
                     $data = array_merge($data, $this->createAddresses($customer, $entityService));
 
-                    if ($this->restV1) {
+                    if ($this->db) {
                         try {
-                            $data['enable_newsletter'] = $this->restV1->getNewsletterStatus($localId);
+                            $data['enable_newsletter'] = $this->db->getNewsletterStatus($localId);
                         }catch (\Exception $exception) {
                             throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
                         }
