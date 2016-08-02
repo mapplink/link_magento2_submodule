@@ -792,7 +792,6 @@ class Db implements ServiceLocatorAwareInterface
 
                 $where = $whereForStore0 = array(
                     'entity_id'=>$entityIds,
-                    'entity_type_id'=>$entityTypeData['entity_type_id'],
                     'store_id'=>$storeId,
                     'attribute_id'=>array_values($typeAttributes),
                 );
