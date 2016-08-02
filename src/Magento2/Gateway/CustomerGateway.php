@@ -7,8 +7,7 @@ use Log\Service\LogService;
 use Magelink\Exception\MagelinkException;
 use Magelink\Exception\NodeException;
 use Magelink\Exception\GatewayException;
-use Node\AbstractNode;
-use Node\Entity;
+
 
 class CustomerGateway extends AbstractGateway
 {
@@ -122,10 +121,10 @@ class CustomerGateway extends AbstractGateway
                 $additionalAttributes = array();
             }
 
-            foreach ($additionalAttributes as $k=>&$attributeCode) {
+            foreach ($additionalAttributes as $key=>&$attributeCode) {
                 $attributeCode = trim(strtolower($attributeCode));
                 if (!strlen($attributeCode)) {
-                    unset($additionalAttributes[$k]);
+                    unset($additionalAttributes[$key]);
                 }else{
                     if (!$this->entityConfigService->checkAttribute('customer', $attributeCode)) {
                         $this->entityConfigService->createAttribute(
@@ -139,19 +138,19 @@ class CustomerGateway extends AbstractGateway
             foreach ($results as $customer) {
                 $data = array();
 
-                $uniqueId = $customer['email'];
-                $localId = $customer['customer_id'];
-                $storeId = ($this->_node->isMultiStore() ? $customer['store_id'] : 0);
+                $uniqueId = $customer->email;
+                $localId = $customer->id;
+                $storeId = ($this->_node->isMultiStore() ? $customer->store_id : 0);
                 $parentId = NULL;
 
-                $data['first_name'] = (isset($customer['firstname']) ? $customer['firstname'] : NULL);
-                $data['middle_name'] = (isset($customer['middlename']) ? $customer['middlename'] : NULL);
-                $data['last_name'] = (isset($customer['lastname']) ? $customer['lastname'] : NULL);
-                $data['date_of_birth'] = (isset($customer['dob']) ? $customer['dob'] : NULL);
+                $data['first_name'] = (isset($customer->firstname) ? $customer->firstname : NULL);
+                $data['middle_name'] = (isset($customer->middlename) ? $customer->middlename : NULL);
+                $data['last_name'] = (isset($customer->lastname) ? $customer->lastname : NULL);
+                $data['date_of_birth'] = (isset($customer->dob) ? $customer->dob : NULL);
 
-                /**if ($specialAtt) {
+/*                if ($specialAtt) {
                     $data[$specialAtt] = (isset($customer['taxvat']) ? $customer['taxvat'] : NULL);
-                }**/
+                }
                 if (count($additionalAttributes) && $this->restV1) {
                     // @todo: Extract extra information from the first REST call ($results)
                     foreach ($additionalAttributes as $attributeCode) {
@@ -162,15 +161,15 @@ class CustomerGateway extends AbstractGateway
                         }
                     }
                 }
-
-                if (isset($this->customerGroups[intval($customer['group_id'])])) {
-                    $data['customer_type'] = $this->customerGroups[intval($customer['group_id'])]['customer_group_code'];
+*/
+                if (isset($this->customerGroups[intval($customer->group_id)])) {
+                    $data['customer_type'] = $this->customerGroups[intval($customer->group_id)]['customer_group_code'];
                 }else{
                     $this->getServiceLocator()->get('logService')
                         ->log(LogService::LEVEL_WARN,
                             $this->getLogCode().'_ukwn_grp',
-                            'Unknown customer group ID '.$customer['group_id'],
-                            array('group'=>$customer['group_id'], 'unique'=>$customer['email'])
+                            'Unknown customer group ID '.$customer->group_id,
+                            array('group'=>$customer->group_id, 'unique'=>$customer->email)
                         );
                 }
 
@@ -181,7 +180,6 @@ class CustomerGateway extends AbstractGateway
                         try {
                             $data['enable_newsletter'] = $this->restV1->getNewsletterStatus($localId);
                         }catch (\Exception $exception) {
-                            // store as sync issue
                             throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
                         }
                     }
