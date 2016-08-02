@@ -15,6 +15,10 @@ class CustomerGateway extends AbstractGateway
     const GATEWAY_ENTITY = 'customer';
     const GATEWAY_ENTITY_CODE = 'cu';
 
+    /** @var  array $this->customerGroups */
+    protected $customerGroups;
+
+
     /**
      * Initialize the gateway and perform any setup actions required.
      * @param string $entityType
@@ -51,9 +55,9 @@ class CustomerGateway extends AbstractGateway
                 $succes = FALSE;
             }
 
-            $this->_custGroups = array();
+            $this->customerGroups = array();
             foreach ($groups as $groupArray) {
-                $this->_custGroups[$groupArray['customer_group_id']] = $groupArray;
+                $this->customerGroups[$groupArray->customer_group_id] = (array) $groupArray;
             }
         }
 
@@ -145,7 +149,7 @@ class CustomerGateway extends AbstractGateway
                 $data['last_name'] = (isset($customer['lastname']) ? $customer['lastname'] : NULL);
                 $data['date_of_birth'] = (isset($customer['dob']) ? $customer['dob'] : NULL);
 
-                /**if($specialAtt){
+                /**if ($specialAtt) {
                     $data[$specialAtt] = (isset($customer['taxvat']) ? $customer['taxvat'] : NULL);
                 }**/
                 if (count($additionalAttributes) && $this->restV1) {
@@ -159,8 +163,8 @@ class CustomerGateway extends AbstractGateway
                     }
                 }
 
-                if(isset($this->_custGroups[intval($customer['group_id'])])){
-                    $data['customer_type'] = $this->_custGroups[intval($customer['group_id'])]['customer_group_code'];
+                if (isset($this->customerGroups[intval($customer['group_id'])])) {
+                    $data['customer_type'] = $this->customerGroups[intval($customer['group_id'])]['customer_group_code'];
                 }else{
                     $this->getServiceLocator()->get('logService')
                         ->log(LogService::LEVEL_WARN,
@@ -354,10 +358,10 @@ class CustomerGateway extends AbstractGateway
 /*        $entityService = $this->getServiceLocator()->get('entityService');
 
         $additionalAttributes = $this->_node->getConfig('customer_attributes');
-        if(is_string($additionalAttributes)){
+        if (is_string($additionalAttributes)) {
             $additionalAttributes = explode(',', $additionalAttributes);
         }
-        if(!$additionalAttributes || !is_array($additionalAttributes)){
+        if (!$additionalAttributes || !is_array($additionalAttributes)) {
             $additionalAttributes = array();
         }
 
@@ -368,11 +372,11 @@ class CustomerGateway extends AbstractGateway
             ),
         );
 
-        foreach($attributes as $att){
+        foreach($attributes as $att) {
             $v = $entity->getData($att);
-            if(in_array($att, $additionalAttributes)){
+            if (in_array($att, $additionalAttributes)) {
                 // Custom attribute
-                if(is_array($v)){
+                if (is_array($v)) {
                     // @todo implement
                     throw new MagelinkException('This gateway does not yet support multi_data additional attributes');
                 }else{
@@ -384,7 +388,7 @@ class CustomerGateway extends AbstractGateway
                 continue;
             }
             // Normal attribute
-            switch($att){
+            switch($att) {
                 case 'name':
                 case 'description':
                 case 'short_description':
@@ -400,12 +404,12 @@ class CustomerGateway extends AbstractGateway
                     $data['special_to_date'] = $v;
                     break;
                 case 'customer_class':
-                    if($type != \Entity\Update::TYPE_CREATE){
+                    if ($type != \Entity\Update::TYPE_CREATE) {
                         // @todo log error (but no exception)
                     }
                     break;
                 case 'type':
-                    if($type != \Entity\Update::TYPE_CREATE){
+                    if ($type != \Entity\Update::TYPE_CREATE) {
                         // @todo log error (but no exception)
                     }
                     break;
@@ -424,7 +428,7 @@ class CustomerGateway extends AbstractGateway
             }
         }
 
-        if($type == \Entity\Update::TYPE_UPDATE){
+        if ($type == \Entity\Update::TYPE_UPDATE) {
             $req = array(
                 $entity->getUniqueId(),
                 $data,
@@ -432,11 +436,11 @@ class CustomerGateway extends AbstractGateway
                 'sku'
             );
             $this->restV1->call('catalogCustomerUpdate', $req);
-        }else if($type == \Entity\Update::TYPE_CREATE){
+        }else if ($type == \Entity\Update::TYPE_CREATE) {
 
             $attSet = NULL;
-            foreach($this->_attSets as $setId=>$set){
-                if($set['name'] == $entity->getData('customer_class', 'default')){
+            foreach($this->_attSets as $setId=>$set) {
+                if ($set['name'] == $entity->getData('customer_class', 'default')) {
                     $attSet = $setId;
                     break;
                 }
@@ -449,7 +453,7 @@ class CustomerGateway extends AbstractGateway
                 $entity->getStoreId()
             );
             $res = $this->restV1->call('catalogCustomerCreate', $req);
-            if(!$res){
+            if (!$res) {
                 throw new MagelinkException('Error creating customer in Magento2 (' . $entity->getUniqueId() . '!');
             }
             $entityService->linkEntity($this->_node->getNodeId(), $entity, $res);
@@ -471,7 +475,7 @@ class CustomerGateway extends AbstractGateway
 
         $entity = $action->getEntity();
 
-        switch($action->getType()){
+        switch($action->getType()) {
             case 'delete':
                 $this->restV1->call('catalogCustomerDelete', array($entity->getUniqueId(), 'sku'));
                 break;
