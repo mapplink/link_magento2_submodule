@@ -78,10 +78,11 @@ class Node extends AbstractNode
                 throw new SyncException('Failed to initialize RESTv1 api for store view fetch');
             }else{
                 $response = $restV1->get('store/storeViews', array());
+
                 if (count($response) > 0) {
                     $this->storeViews = array();
                     foreach ($response as $storeView) {
-                        $this->storeViews[$storeView['store_id']] = $storeView;
+                        $this->storeViews[$storeView->id] = (array) $storeView;
                     }
                 }
 
