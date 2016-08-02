@@ -173,6 +173,9 @@ class CustomerGateway extends AbstractGateway
                         );
                 }
 
+                /** @var EntityService $entityService */
+                $entityService = $this->getServiceLocator()->get('entityService');
+
                 if ($this->_node->getConfig('load_full_customer')) {
                     $data = array_merge($data, $this->createAddresses($customer, $entityService));
 
