@@ -278,13 +278,13 @@ class CustomerGateway extends AbstractGateway
 
         foreach ($customer->addresses as $addressObject) {
             $address = (array) $addressObject;
-            if ($address['default_billing']) {
+            if (isset($address['default_billing']) && $address['default_billing']) {
                 $data['billing_address'] = $this->createAddressEntity($address, $customer, 'billing', $entityService);
             }
-            if ($address['default_shipping']) {
+            if (isset($address['default_shipping']) && $address['default_shipping']) {
                 $data['shipping_address'] = $this->createAddressEntity($address, $customer, 'shipping', $entityService);
             }
-            if (!$address['default_billing'] && !$address['default_shipping']) {
+            if (!isset($data['billing_address']) && !isset($data['shipping_address'])) {
                 // @todo: Store this maybe? For now ignore
             }
         }
