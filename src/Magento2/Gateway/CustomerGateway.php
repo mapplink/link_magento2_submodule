@@ -314,15 +314,23 @@ class CustomerGateway extends AbstractGateway
             $uniqueId
         );
 
+        if (isset($addressData['street']) && is_string($addressData['street'])) {
+            $street = $addressData['street'];
+        }elseif (isset($addressData['street']) && is_array($addressData['street'])) {
+            $street = implode(chr(10), $addressData['street']);
+        }else{
+            $street = NULL;
+        }
+
         $data = array(
             'first_name'=>(isset($addressData['firstname']) ? $addressData['firstname'] : NULL),
             'middle_name'=>(isset($addressData['middlename']) ? $addressData['middlename'] : NULL),
             'last_name'=>(isset($addressData['lastname']) ? $addressData['lastname'] : NULL),
             'prefix'=>(isset($addressData['prefix']) ? $addressData['prefix'] : NULL),
             'suffix'=>(isset($addressData['suffix']) ? $addressData['suffix'] : NULL),
-            'street'=>(isset($addressData['street']) ? $addressData['street'] : NULL),
+            'street'=>$street,
             'city'=>(isset($addressData['city']) ? $addressData['city'] : NULL),
-            'region'=>(isset($addressData['region']) ? $addressData['region'] : NULL),
+            'region'=>(isset($addressData['region']->region) ? $addressData['region']->region : NULL),
             'postcode'=>(isset($addressData['postcode']) ? $addressData['postcode'] : NULL),
             'country_code'=>(isset($addressData['country_id']) ? $addressData['country_id'] : NULL),
             'telephone'=>(isset($addressData['telephone']) ? $addressData['telephone'] : NULL),
@@ -340,6 +348,7 @@ class CustomerGateway extends AbstractGateway
         }else{
             $entityService->updateEntity($this->_node->getNodeId(), $addressEntity, $data, FALSE);
         }
+
         return $addressEntity;
     }
 
