@@ -157,12 +157,7 @@ class Node extends AbstractNode
         $this->processActions();
 
         $startProcessUpdatesTime = time();
-        $triggerSliFeed = $this->processUpdates();
-
-        if ($triggerSliFeed) {
-            $this->triggerSliFeed();
-        }
-
+        $this->processUpdates();
         $endProcessTime = time();
 
         $getActionsTime = ceil($startGetActionsTime - $startGetUpdatesTime);
