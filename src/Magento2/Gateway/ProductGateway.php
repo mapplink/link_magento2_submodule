@@ -947,7 +947,7 @@ class ProductGateway extends AbstractGateway
                         $productData['special_from_date'] = '';
                         $productData['special_to_date'] = '';
                     }
-
+// ToDo: Change to Rest
                     $restData = $this->getUpdateDataForSoapCall($productData, $customAttributes);
                     $logData = array(
                         'type'=>$entity->getData('type'),
@@ -960,7 +960,7 @@ class ProductGateway extends AbstractGateway
                     if ($updateViaDbApi) {
                         $api = 'DB';
                     }else{
-                        $api = 'SOAP';
+                        $api = 'REST';
                     }
 
                     if ($type == Update::TYPE_UPDATE || $localId) {
@@ -1036,7 +1036,6 @@ class ProductGateway extends AbstractGateway
                     }
 
                     if ($type == Update::TYPE_CREATE) {
-
                         $attributeSet = NULL;
                         foreach ($this->attributeSets as $setId=>$set) {
                             if ($set['name'] == $entity->getData('product_class', 'default')) {
@@ -1049,7 +1048,7 @@ class ProductGateway extends AbstractGateway
                             throw new \Magelink\Exception\SyncException($message);
                         }
 
-                        $message = 'Creating product(SOAP) : '.$sku.' with '.implode(', ', array_keys($productData));
+                        $message = 'Creating product (REST) : '.$sku.' with '.implode(', ', array_keys($productData));
                         $logData['set'] = $attributeSet;
                         $this->getServiceLocator()->get('logService')
                             ->log(LogService::LEVEL_INFO, $this->getLogCode().'_wr_cr', $message, $logData);
@@ -1063,7 +1062,7 @@ class ProductGateway extends AbstractGateway
                         );
 
                         try{
-                            $restResult = $this->restV1->post('products', $parameters);
+                            $restResult = $this->restV1->post('products', $restData);
                             $restFault = NULL;
                         }catch(\Exception $exception) {
                             $restResult = FALSE;
