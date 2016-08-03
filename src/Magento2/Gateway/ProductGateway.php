@@ -958,9 +958,9 @@ class ProductGateway extends AbstractGateway
 
                     $updateViaDbApi = ($this->restV1 && $localId && $storeId == 0);
                     if ($updateViaDbApi) {
-                        $api = 'DB';
+                        $api = 'db';
                     }else{
-                        $api = 'REST';
+                        $api = 'restV1';
                     }
 
                     if ($type == Update::TYPE_UPDATE || $localId) {
@@ -991,6 +991,7 @@ class ProductGateway extends AbstractGateway
                             $logMessage .= 'successfully via DB api with '.implode(', ', array_keys($productData));
                         }else{
                             try{
+var_dump($restData);
                                 $putData = $restData; // $sku, $storeId
                                 if ($setSpecialPrice) {
                                     $putData['custom_attributes'][] = array(
@@ -1023,7 +1024,7 @@ class ProductGateway extends AbstractGateway
 
                             $logLevel = ($restResult ? LogService::LEVEL_INFO : LogService::LEVEL_ERROR);
                             $logCode = $this->getLogCode().'_wrupdrest';
-                            if ($api != 'SOAP') {
+                            if ($api != 'restV1') {
                                 $logMessage = $api.' update failed. Removed local id '.$localId
                                     .' from node '.$nodeId.'. '.$logMessage;
                                 if (isset($exception)) {
@@ -1031,7 +1032,7 @@ class ProductGateway extends AbstractGateway
                                 }
                             }
 
-                            $logMessage .= ($restResult ? 'successfully' : 'without success').' via SOAP api.'
+                            $logMessage .= ($restResult ? 'successfully' : 'without success').' via REST api.'
                                 .($type == Update::TYPE_CREATE ? ' Try to create now.' : '');
                             $logData['rest data'] = $restData;
                             $logData['rest result'] = $restResult;
@@ -1064,7 +1065,7 @@ class ProductGateway extends AbstractGateway
                             $restData,
                             $entity->getStoreId()
                         );
-
+var_dump($restData);
                         try{
                             $restResult = $this->restV1->post('products', $restData);
                             $restFault = NULL;
