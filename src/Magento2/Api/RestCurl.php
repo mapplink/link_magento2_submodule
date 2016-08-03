@@ -442,21 +442,23 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     }
 
     /**
-     * @param string $postfields
+     * @param array $postfields
      * @return bool $success
      */
-    protected function setPostfields($postfields)
+    protected function setPostfields(array $postfields)
     {
-        return $this->request->setPost($postfields);
+        $postObject = new Parameters($postfields);
+        return $this->request->setPost($postObject);
     }
 
     /**
-     * @param string $putfields
+     * @param array $putfields
      * @return bool $success
      */
-    protected function setPutfields($putfields)
+    protected function setPutfields(array $putfields)
     {
-        return $this->setBodyfields('PUT', $putfields);
+        $putObject = new Parameters($putfields);
+        return $this->request->setPost($putObject);
     }
 
     /**
