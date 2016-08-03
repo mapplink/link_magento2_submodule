@@ -1011,7 +1011,11 @@ class ProductGateway extends AbstractGateway
                                     $this->restV1->put('products/'.$sku, $putData));
                             }catch(\Exception $exception) {
                                 $restResult = FALSE;
-                                $restFaultMessage = $exception->getPrevious()->getMessage();
+                                if (is_null($exception->getPrevious())) {
+                                    $restFaultMessage = $exception->getMessage();
+                                }else{
+                                    $restFaultMessage = $exception->getPrevious()->getMessage();
+                                }
                                 if (strpos($restFaultMessage, 'Product not exists') !== FALSE) {
                                     $type = Update::TYPE_CREATE;
                                 }
