@@ -71,7 +71,7 @@ class Node extends AbstractNode
      */
     public function getStoreViews()
     {
-        if ($this->storeViews === NULL) {
+        if (is_null($this->storeViews)) {
             /** @var \Magento2\Api\RestV1 $restV1 */
             $restV1 = $this->getApi('restV1');
             if (!$restV1) {
@@ -124,10 +124,6 @@ class Node extends AbstractNode
                     array(),
                     array('node'=>$this)
                 );
-        }
-
-        if (!$this->isMultiStore()) {
-            $this->storeViews = array(0=>array());
         }
     }
 
