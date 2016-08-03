@@ -967,7 +967,7 @@ class ProductGateway extends AbstractGateway
                         if ($updateViaDbApi) {
                             try{
                                 $tablePrefix = 'catalog_product';
-                                $rowsAffected = $this->restV1->updateEntityEav(
+                                $rowsAffected = $this->db->updateEntityEav(
                                     $tablePrefix,
                                     $localId,
                                     $entity->getStoreId(),
