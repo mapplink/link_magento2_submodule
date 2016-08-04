@@ -82,7 +82,7 @@ class Node extends AbstractNode
                 if (count($response) > 0) {
                     $this->storeViews = array();
                     foreach ($response as $storeView) {
-                        $this->storeViews[$storeView->id] = (array) $storeView;
+                        $this->storeViews[$storeView['id']] = $storeView;
                     }
                 }
 
