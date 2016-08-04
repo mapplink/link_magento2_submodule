@@ -314,8 +314,13 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
 
         if (is_array($response) && array_key_exists('items', $response)) {
             $response = $response['items'];
-        }elseif(is_object($response) && isset($response->items)) {
-            $response = $response->items;
+        }elseif (isset($response['message'])) {
+            $this->getServiceLocator()->get('logService')
+                ->log(LogService::LEVEL_ERROR, $this->getLogCodePrefix().'_call_err',
+                    'REST ERROR: '.$response['message'],
+                    array('parameters'=>$parameters, 'response'=>$response)
+            );
+            $response = FALSE;
         }
 
         return $response;
@@ -328,7 +333,6 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     public function delete($callType)
     {
         $response = $this->call(Request::METHOD_DELETE, $callType);
-
         return $response;
     }
 
