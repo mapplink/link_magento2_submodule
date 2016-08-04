@@ -815,6 +815,7 @@ class ProductGateway extends AbstractGateway
             /** @var Magento2Service $magento2Service */
             $magento2Service = $this->getServiceLocator()->get('magento2Service');
 
+            // ToDo: $this->getUpdateData()
             foreach ($originalData as $code=>$value) {
                 $mappedCode = $magento2Service->getMappedCode('product', $code);
                 switch ($mappedCode) {
@@ -881,6 +882,8 @@ class ProductGateway extends AbstractGateway
             $localId = $this->_entityService->getLocalId($this->_node->getNodeId(), $entity);
 
             $storeDataByStoreId = $this->_node->getStoreViews();
+// Hardcoded to store 0
+$storeDataByStoreId = array(key($storeDataByStoreId)=>current($storeDataByStoreId));
             if (count($storeDataByStoreId) > 0 && $type != Update::TYPE_DELETE) {
                 $dataPerStore[0] = $data;
                 foreach (array('price', 'special_price', 'msrp', 'cost') as $code) {
@@ -919,6 +922,7 @@ class ProductGateway extends AbstractGateway
                 unset($data, $dataToMap, $dataToCheck);
 
                 $storeIds = array_merge(array(0), array_keys($storeDataByStoreId));
+
                 $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUGINTERNAL,
                     $this->getLogCode().'_wrupd_stor',
                     'StoreIds '.json_encode($storeIds).' (type: '.$type.'), websiteIds '.json_encode($websiteIds).'.',
@@ -929,26 +933,14 @@ class ProductGateway extends AbstractGateway
                     $productData = $dataPerStore[$storeId];
                     $productData['website_ids'] = $websiteIds;
 
-                    if ($magento2Service->isStoreUsingDefaults($storeId)) {
-                        $setSpecialPrice = FALSE;
+                    if ($storeId != 0 || $magento2Service->isStoreUsingDefaults($storeId)) {
                         unset($productData['special_price']);
                         unset($productData['special_from_date']);
                         unset($productData['special_to_date']);
-                    }elseif (isset($productData['special_price'])) {
-                        $setSpecialPrice = FALSE;
-                    }elseif ($storeId === 0) {
-                        $setSpecialPrice = FALSE;
-                        $productData['special_price'] = NULL;
-                        $productData['special_from_date'] = NULL;
-                        $productData['special_to_date'] = NULL;
-                    }else{
-                        $setSpecialPrice = FALSE;
-                        $productData['special_price'] = '';
-                        $productData['special_from_date'] = '';
-                        $productData['special_to_date'] = '';
                     }
+
 // ToDo: Change to Rest
-                    $restData = $this->getUpdateDataForSoapCall($productData, $customAttributes);
+//                    $restData = $this->getUpdateDataForSoapCall($productData, $customAttributes);
                     $logData = array(
                         'type'=>$entity->getData('type'),
                         'store id'=>$storeId,
@@ -961,6 +953,15 @@ class ProductGateway extends AbstractGateway
                         $api = 'db';
                     }else{
                         $api = 'restV1';
+                        $restData = $productData;
+
+                        if (isset($sku)) {
+                            $restData['sku'] = $sku;
+                        }else{
+                            throw new GatewayException('SKU is essential for a synchronisation but missing.');
+                        }
+
+                        unset($restData['website_ids']);
                     }
 
                     if ($type == Update::TYPE_UPDATE || $localId) {
@@ -991,22 +992,19 @@ class ProductGateway extends AbstractGateway
                             $logMessage .= 'successfully via DB api with '.implode(', ', array_keys($productData));
                         }else{
                             try{
-var_dump($restData);
-                                $putData = $restData; // $sku, $storeId
-                                if ($setSpecialPrice) {
-                                    $putData['custom_attributes'][] = array(
-                                        'attribute_code'=>'special_price',
-                                        'value'=>$productData['special_price']
-                                    );
-                                    $putData['custom_attributes'][] = array(
-                                        'attribute_code'=>'special_price_from_date',
-                                        'value'=>$productData['special_from_date']
-                                    );
-                                    $putData['custom_attributes'][] = array(
-                                        'attribute_code'=>'special_price',
-                                        'value'=>$productData['special_to_date']
-                                    );
+                                $customAttributes = array();
+                                foreach (array('special_price', 'special_from_date', 'special_to_date') as $code) {
+                                    if (isset($productData['special_price']) && isset($productData[$code])) {
+                                        $customAttributes[] = array(
+                                            'attribute_code'=>$code,
+                                            'value'=>$productData[$code]
+                                        );
+                                    }
+                                    unset($restData[$code]);
                                 }
+
+                                $putData = array('product'=>$restData);
+                                $putData['product']['custom_attributes'] = $customAttributes;
 
                                 $restResult = array('update'=>
                                     $this->restV1->put('products/'.$sku, $putData));
