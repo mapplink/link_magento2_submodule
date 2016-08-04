@@ -56,7 +56,7 @@ class CustomerGateway extends AbstractGateway
 
             $this->customerGroups = array();
             foreach ($groups as $group) {
-                $this->customerGroups[$group->id] = (array) $group;
+                $this->customerGroups[$group['id']] = $group;
             }
         }
 
@@ -138,15 +138,15 @@ class CustomerGateway extends AbstractGateway
             foreach ($results as $customer) {
                 $data = array();
 
-                $uniqueId = $customer->email;
-                $localId = $customer->id;
-                $storeId = ($this->_node->isMultiStore() ? $customer->store_id : 0);
+                $uniqueId = $customer['email'];
+                $localId = $customer['id'];
+                $storeId = ($this->_node->isMultiStore() ? $customer['store_id'] : 0);
                 $parentId = NULL;
 
-                $data['first_name'] = (isset($customer->firstname) ? $customer->firstname : NULL);
-                $data['middle_name'] = (isset($customer->middlename) ? $customer->middlename : NULL);
-                $data['last_name'] = (isset($customer->lastname) ? $customer->lastname : NULL);
-                $data['date_of_birth'] = (isset($customer->dob) ? $customer->dob : NULL);
+                $data['first_name'] = (isset($customer['firstname']) ? $customer['firstname'] : NULL);
+                $data['middle_name'] = (isset($customer['middlename']) ? $customer['middlename'] : NULL);
+                $data['last_name'] = (isset($customer['lastname']) ? $customer['lastname'] : NULL);
+                $data['date_of_birth'] = (isset($customer['dob']) ? $customer['dob'] : NULL);
 
 /*                if ($specialAtt) {
                     $data[$specialAtt] = (isset($customer['taxvat']) ? $customer['taxvat'] : NULL);
@@ -162,14 +162,14 @@ class CustomerGateway extends AbstractGateway
                     }
                 }
 */
-                if (isset($this->customerGroups[intval($customer->group_id)])) {
-                    $data['customer_type'] = $this->customerGroups[intval($customer->group_id)]['code'];
+                if (isset($this->customerGroups[intval($customer['group_id'])])) {
+                    $data['customer_type'] = $this->customerGroups[intval($customer['group_id'])]['code'];
                 }else{
                     $this->getServiceLocator()->get('logService')
                         ->log(LogService::LEVEL_WARN,
                             $this->getLogCode().'_ukwn_grp',
-                            'Unknown customer group ID '.$customer->group_id,
-                            array('group'=>$customer->group_id, 'unique'=>$customer->email)
+                            'Unknown customer group ID '.$customer['group_id'],
+                            array('group'=>$customer['group_id'], 'unique'=>$customer['email'])
                         );
                 }
 
@@ -276,8 +276,7 @@ class CustomerGateway extends AbstractGateway
     {
         $data = array();
 
-        foreach ($customer->addresses as $addressObject) {
-            $address = (array) $addressObject;
+        foreach ($customer['addresses']  as $address) {
             if (isset($address['default_billing']) && $address['default_billing']) {
                 $data['billing_address'] = $this->createAddressEntity($address, $customer, 'billing', $entityService);
             }
@@ -305,7 +304,7 @@ class CustomerGateway extends AbstractGateway
      */
     protected function createAddressEntity(array $addressData, $customer, $type, EntityService $entityService)
     {
-        $uniqueId = 'cust-'.$customer->id.'-'.$type;
+        $uniqueId = 'cust-'.$customer['id'].'-'.$type;
 
         $addressEntity = $entityService->loadEntity(
             $this->_node->getNodeId(),
