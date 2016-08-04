@@ -12,6 +12,7 @@ namespace Magento2\Api;
 
 use Log\Service\LogService;
 use Magelink\Exception\MagelinkException;
+use Magelink\Exception\GatewayException;
 use Magento2\Node;
 use Zend\Http\Client;
 use Zend\Http\Headers;
