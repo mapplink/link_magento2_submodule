@@ -281,6 +281,8 @@ class ProductGateway extends AbstractGateway
                     $sku = NULL;
                     $combinedData = array();
                     $storeIds = array_keys($this->_node->getStoreViews());
+// TECHNICAL DEBT // ToDo: Hardcoded to default store
+$storeDataByStoreId = array(key($storeDataByStoreId)=>current($storeDataByStoreId));
 
                     foreach ($storeIds as $storeId) {
                         if ($storeId == 0) {
@@ -882,7 +884,7 @@ class ProductGateway extends AbstractGateway
             $localId = $this->_entityService->getLocalId($this->_node->getNodeId(), $entity);
 
             $storeDataByStoreId = $this->_node->getStoreViews();
-// Hardcoded to store 0
+// TECHNICAL DEBT // ToDo: Hardcoded to default store
 $storeDataByStoreId = array(key($storeDataByStoreId)=>current($storeDataByStoreId));
             if (count($storeDataByStoreId) > 0 && $type != Update::TYPE_DELETE) {
                 $dataPerStore[0] = $data;
