@@ -716,49 +716,45 @@ $storeDataByStoreId = array(key($storeDataByStoreId)=>current($storeDataByStoreI
 
     /**
      * Restructure data for rest call and return this array.
+     * @param \Entity\Entity $entity
      * @param array $data
-     * @param array $customAttributes
+     * @param array $customAttributeCodes
      * @return array $restData
      * @throws \Magelink\Exception\MagelinkException
      */
-    protected function getUpdateDataForSoapCall(array $data, array $customAttributes)
+    protected function getUpdateDataForRestCall(\Entity\Entity $entity, array $data, array $customAttributeCodes)
     {
-        // Restructure data for rest call
-        $restData = array(
-            'additional_attributes'=>array(
-                'single_data'=>array(),
-                'multi_data'=>array()
-            )
-        );
-        $removeSingleData = $removeMultiData = TRUE;
+        $sku = $entity->getUniqueId();
 
-        foreach ($data as $code=>$value) {
-            $isCustomAttribute = in_array($code, $customAttributes);
-            if ($isCustomAttribute) {
-                if (is_array($data[$code])) {
-                    // TECHNICAL DEBT // ToDo(maybe) : Implement
-                    throw new GatewayException("This gateway doesn't support multi_data custom attributes yet.");
-                    $removeMultiData = FALSE;
-                }else{
-                    $restData['additional_attributes']['single_data'][] = array(
-                        'key'=>$code,
-                        'value'=>$value,
-                    );
-                    $removeSingleData = FALSE;
+        if (!isset($sku)) {
+            throw new GatewayException('SKU is essential for a synchronisation but missing.');
+            $restData = array();
+
+        }else {
+            $restData = $data;
+            $customAttributes = array();
+            $customAttributeCodes = array_merge(
+                $customAttributeCodes,
+                array('special_price', 'special_from_date', 'special_to_date')
+            );
+
+            foreach ($data as $code=>$value) {
+                $isCustomAttribute = in_array($code, $customAttributes);
+                if ($isCustomAttribute) {
+                    if (is_array($data[$code])) {
+                        // ToDo(maybe) : Implement
+                        throw new GatewayException("This gateway doesn't support multi data custom attributes yet.");
+                    }else {
+                        $customAttributes[] = array('attribute_code' => $code, 'value' => $data[$code]);
+                        unset($restData[$code]);
+                    }
                 }
-            }else{
-                $restData[$code] = $value;
             }
-        }
 
-        if ($removeSingleData) {
-            unset($data['additional_attributes']['single_data']);
-        }
-        if ($removeMultiData) {
-            unset($data['additional_attributes']['multi_data']);
-        }
-        if ($removeSingleData && $removeMultiData) {
-            unset($data['additional_attributes']);
+            $restData['sku'] = $sku;
+            $restData['product']['custom_attributes'] = $customAttributes;
+
+            unset($restData['website_ids']);
         }
 
         return $restData;
@@ -941,8 +937,8 @@ $storeDataByStoreId = array(key($storeDataByStoreId)=>current($storeDataByStoreI
                         unset($productData['special_to_date']);
                     }
 
-// ToDo: Change to Rest
-//                    $restData = $this->getUpdateDataForSoapCall($productData, $customAttributes);
+                    $restData = $this->getUpdateDataForRestCall($entity, $productData, $customAttributes);
+
                     $logData = array(
                         'type'=>$entity->getData('type'),
                         'store id'=>$storeId,
@@ -955,15 +951,6 @@ $storeDataByStoreId = array(key($storeDataByStoreId)=>current($storeDataByStoreI
                         $api = 'db';
                     }else{
                         $api = 'restV1';
-                        $restData = $productData;
-
-                        if (isset($sku)) {
-                            $restData['sku'] = $sku;
-                        }else{
-                            throw new GatewayException('SKU is essential for a synchronisation but missing.');
-                        }
-
-                        unset($restData['website_ids']);
                     }
 
                     if ($type == Update::TYPE_UPDATE || $localId) {
@@ -994,20 +981,7 @@ $storeDataByStoreId = array(key($storeDataByStoreId)=>current($storeDataByStoreI
                             $logMessage .= 'successfully via DB api with '.implode(', ', array_keys($productData));
                         }else{
                             try{
-                                $customAttributes = array();
-                                foreach (array('special_price', 'special_from_date', 'special_to_date') as $code) {
-                                    if (isset($productData['special_price']) && isset($productData[$code])) {
-                                        $customAttributes[] = array(
-                                            'attribute_code'=>$code,
-                                            'value'=>$productData[$code]
-                                        );
-                                    }
-                                    unset($restData[$code]);
-                                }
-
                                 $putData = array('product'=>$restData);
-                                $putData['product']['custom_attributes'] = $customAttributes;
-
                                 $restResult = array('update'=>
                                     $this->restV1->put('products/'.$sku, $putData));
                             }catch(\Exception $exception) {
