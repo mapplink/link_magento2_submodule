@@ -282,7 +282,7 @@ class ProductGateway extends AbstractGateway
                     $combinedData = array();
                     $storeIds = array_keys($this->_node->getStoreViews());
 // TECHNICAL DEBT // ToDo: Hardcoded to default store
-$storeDataByStoreId = array(key($storeDataByStoreId)=>current($storeDataByStoreId));
+$storeIds = array(current($storeIds));
 
                     foreach ($storeIds as $storeId) {
                         if ($storeId == 0) {
