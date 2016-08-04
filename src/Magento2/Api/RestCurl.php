@@ -305,12 +305,11 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
 
         $client = new Client();
         $client->setOptions($this->clientOptions);
-
         $response = $client->send($this->request);
 
         if (!is_array($response)) {
             $responseBody = $response->getBody();
-            $response = Json::decode($responseBody);
+            $response = Json::decode($responseBody, Json::TYPE_ARRAY);
         }
 
         if (is_array($response) && array_key_exists('items', $response)) {
@@ -447,8 +446,8 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      */
     protected function setPostfields(array $postfields)
     {
-        $postObject = new Parameters($postfields);
-        return $this->request->setPost($postObject);
+        $postParameters = new Parameters($postfields);
+        return $this->request->setPost($postParameters);
     }
 
     /**
@@ -457,8 +456,8 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      */
     protected function setPutfields(array $putfields)
     {
-        $putObject = new Parameters($putfields);
-        return $this->request->setPost($putObject);
+        $putContent = Json::encode($putfields);
+        return $this->request->setContent($putContent);
     }
 
     /**
