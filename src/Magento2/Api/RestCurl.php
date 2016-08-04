@@ -320,7 +320,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
                     'REST ERROR: '.$response['message'],
                     array('parameters'=>$parameters, 'response'=>$response)
             );
-            $response = FALSE;
+            throw new GatewayException('REST ERROR: '.$response['message']);
         }
 
         return $response;
