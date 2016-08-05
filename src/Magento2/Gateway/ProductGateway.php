@@ -739,6 +739,10 @@ $storeIds = array(current($storeIds));
      */
     protected function getProductWriteData(Product $product, $type)
     {
+        // TECHNICAL DEBT // ToDo : change this into a mapping
+
+        $data = array();
+
         foreach ($product->getFullArrayCopy() as $code=>$value) {
             $mappedCode = $this->getMagento2Service()->getMappedCode('product', $code);
             switch ($mappedCode) {
@@ -793,10 +797,9 @@ $storeIds = array(current($storeIds));
                         ->log(LogService::LEVEL_WARN,
                             $this->getLogCode().'_wr_invdata',
                             'Unsupported attribute for update of '.$product->getUniqueId().': '.$code,
-                            array('attribute'=>$code),
+                            array('type'=>'product', 'attribute'=>$code),
                             array('entity'=>$product)
                         );
-                    // Warn unsupported attribute
             }
         }
 
@@ -809,6 +812,33 @@ $storeIds = array(current($storeIds));
      */
     protected function getStockitemWriteData(Entity $stockitem)
     {
+        // TECHNICAL DEBT // ToDo : Move that to a stock gateway
+        // TECHNICAL DEBT // ToDo : change this into a mapping
+
+        $data = array();
+
+        foreach ($stockitem->getFullArrayCopy() as $code=>$value) {
+            switch ($code) {
+                case 'available':
+                    $data['qty'] = $value;
+                    $data['is_in_stock'] = ($value > 0 ? 1 : 0);
+                    break;
+                case 'qty_soh':
+                case 'total':
+                    // Ignore attributes
+                    break;
+                default:
+                    $this->getServiceLocator()->get('logService')
+                        ->log(
+                            LogService::LEVEL_WARN,
+                            $this->getLogCode().'_wr_invdata',
+                            'Unsupported attribute for update of '.$stockitem->getUniqueId().': '.$code,
+                            array('type'=>'stockitem', 'attribute'=>$code),
+                            array('entity'=>$stockitem)
+                        );
+            }
+        }
+
         return $data;
     }
 
@@ -993,13 +1023,14 @@ $storeDataByStoreId = array(key($storeDataByStoreId)=>current($storeDataByStoreI
                     }
 
                     $restData = $this->getUpdateDataForRestCall($product, $productData, $customAttributes);
-                    foreach ($productData as $attributeCode=>$attributeValue) {
-                        if (!in_array($attributeCode, $attributeCodes)) {
-                            unset($productData[$attributeCode]);
-                        }
-                    }
+                    $restData['extension_attributes']['stock_item'] = $stockitemData;
 
                     if ($type == Update::TYPE_UPDATE) {
+                        foreach ($productData as $attributeCode=>$attributeValue) {
+                            if (!in_array($attributeCode, $attributeCodes)) {
+                                unset($productData[$attributeCode]);
+                            }
+                        }
                         $updateRestData = $this->getUpdateDataForRestCall($product, $productData, $customAttributes);
 
                         if (count($updateRestData) == 0) {
