@@ -873,14 +873,14 @@ class Db implements ServiceLocatorAwareInterface
 
     /**
      * Preprocess a list of attribute codes into the respective tables
-     *
      * @param string $entityType
      * @param array $attributes
      * @throws MagelinkException if an invalid attribute code is passed
-     * @return array
+     * @return array $attributesByType
      */
     protected function preprocessEavAttributes($entityType, $attributes)
     {
+        // ToDo : Cleanup this method
         $prefix = $this->getEntityPrefix($entityType);
 
         if (!isset($attributesByType['static'])) {
