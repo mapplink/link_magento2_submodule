@@ -195,14 +195,11 @@ class Node extends AbstractNode
                 $gateway = new Gateway\CustomerGateway;
                 break;
             case 'product':
+            case 'stockitem':
                 $gateway = new Gateway\ProductGateway;
                 break;
             case 'order':
                 $gateway = new Gateway\OrderGateway;
-                break;
-            // ToDo: Check whether this is replaceable by the product gateway
-            case 'stockitem':
-                $gateway = new Gateway\StockGateway;
                 break;
             // ToDo: Check creditmemo functionality. Stays disabled for now.
             case 'creditmemo':
