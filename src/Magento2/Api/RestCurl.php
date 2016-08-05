@@ -34,6 +34,8 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     protected $curlHandle = NULL;
     /** @var string|NULL $this->authorisation */
     protected $authorisation = NULL;
+    /** @var Client $this->client */
+    protected $client;
     /** @var string|NULL $this->requestType */
     protected $requestType;
     /** @var  Request $this->request */
@@ -302,11 +304,12 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
         $this->request->setHeaders($headers);
         $this->request->setUri($this->getUrl($callType));
         $this->request->setMethod($this->requestType);
-        $this->$setRequestDataMethod($parameters);
 
-        $client = new Client();
-        $client->setOptions($this->clientOptions);
-        $response = $client->send($this->request);
+        $this->client = new Client();
+        $this->client->setOptions($this->clientOptions);
+
+        $this->$setRequestDataMethod($parameters);
+        $response = $this->client->send($this->request);
 
         if (!is_array($response)) {
             $responseBody = $response->getBody();
@@ -357,7 +360,6 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     public function post($callType, array $parameters = array())
     {
         $response = $this->call(Request::METHOD_POST, $callType, $parameters);
-
         return $response;
     }
 
@@ -369,7 +371,6 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     public function put($callType, array $parameters = array())
     {
         $response = $this->call(Request::METHOD_PUT, $callType, $parameters);
-        // TECHNICAL DEBT // ToDo
         return $response;
     }
 
@@ -451,8 +452,8 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      */
     protected function setPostfields(array $postfields)
     {
-        $postParameters = new Parameters($postfields);
-        return $this->request->setPost($postParameters);
+        $postContent = Json::encode($postfields);
+        return $this->request->setContent($postContent);
     }
 
     /**
