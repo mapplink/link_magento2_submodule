@@ -143,7 +143,7 @@ class ProductGateway extends AbstractGateway
     {
         $success = parent::_init($entityType);
 
-        if ($entityType != 'product') {
+        if ($entityType != 'product' && $entityType != 'stockitem') {
             throw new GatewayException('Invalid entity type for this gateway');
             $success = FALSE;
         }else{
@@ -1032,6 +1032,7 @@ $storeDataByStoreId = array(key($storeDataByStoreId)=>current($storeDataByStoreI
                             }
                         }
                         $updateRestData = $this->getUpdateDataForRestCall($product, $productData, $customAttributes);
+                        $updateRestData['extension_attributes']['stock_item'] = $stockitemData;
 
                         if (count($updateRestData) == 0) {
                             // ToDo: Check if products exists remotely
