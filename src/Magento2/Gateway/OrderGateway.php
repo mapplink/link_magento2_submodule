@@ -847,7 +847,7 @@ class OrderGateway extends AbstractGateway
             $commentIds[] = $com->getCommentId();
         }
 
-        foreach ($orderData['status_history'] as $historyItem) {
+        foreach ($orderData['status_histories'] as $historyItem) {
             if (isset($historyItem['comment']) && preg_match('/{([0-9]+)} - /', $historyItem['comment'], $matches)) {
                 if(in_array($matches[1], $commentIds)){
                     continue; // Comment already loaded through another means
