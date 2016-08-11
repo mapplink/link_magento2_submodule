@@ -1025,6 +1025,13 @@ $storeDataByStoreId = array(key($storeDataByStoreId)=>current($storeDataByStoreI
                     $restData = $this->getUpdateDataForRestCall($product, $productData, $customAttributes);
                     $restData['extension_attributes']['stock_item'] = $stockitemData;
 
+                    $logData = array(
+                        'type'=>$entity->getData('type'),
+                        'store id'=>$storeId,
+                        'product data'=>$productData,
+                        'restData'=>$restData
+                    );
+
                     if ($type == Update::TYPE_UPDATE) {
                         foreach ($productData as $attributeCode=>$attributeValue) {
                             if (!in_array($attributeCode, $attributeCodes)) {
@@ -1037,16 +1044,11 @@ $storeDataByStoreId = array(key($storeDataByStoreId)=>current($storeDataByStoreI
                         if (count($updateRestData) == 0) {
                             // ToDo: Check if products exists remotely
                                 // if not unset($localId) and change type to Update::TYPE_CREATE
+
+                            $logData['updateRestData'] = $updateRestData;
                         }
                     }
 
-                    $logData = array(
-                        'type'=>$entity->getData('type'),
-                        'store id'=>$storeId,
-                        'product data'=>$productData,
-                        'restData'=>$restData,
-                        'updateRestData'=>$updateRestData
-                    );
                     $restResult = NULL;
 
                     $updateViaDbApi = ($this->restV1 && $localId && $storeId == 0);
