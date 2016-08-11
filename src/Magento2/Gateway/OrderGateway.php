@@ -604,11 +604,16 @@ class OrderGateway extends AbstractGateway
                 ));
                 $orders = $this->restV1->get('orders', array('filter'=>$filter));
 
+                $orderIncrementIds = array();
+                foreach ($orders as $order) {
+                    $orderIncrementIds = $order['increment_id'];
+                }
+
                 $this->getServiceLocator()->get('logService')
                     ->log(LogService::LEVEL_INFO,
                         $this->getLogCode().'_rest_list',
                         'Retrieved salesOrderList updated from '.$this->lastRetrieveDate,
-                        array('updated_at'=>$this->lastRetrieveDate, 'orders'=>$orders)
+                        array('updated_at'=>$this->lastRetrieveDate, 'orders'=>$orderIncrementIds)
                     );
                 foreach ($orders as $order) {
                     $orderData = (array) $order;
