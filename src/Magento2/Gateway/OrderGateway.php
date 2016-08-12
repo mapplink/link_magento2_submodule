@@ -693,7 +693,7 @@ class OrderGateway extends AbstractGateway
                 }
 
                 try {
-                    $orders = $this->restV1->get('orders', $filter);
+                    $orders = $this->restV1->get('orders', array('filter'=>$filter));
                 }catch (\Exception $exception) {
                     // store as sync issue
                     throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
