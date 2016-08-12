@@ -510,6 +510,12 @@ class OrderGateway extends AbstractGateway
                     );
                 }
 
+                if (!isset($orderData['status']) && isset($oldStatus)) {
+                    $orderData['status'] = $oldStatus;
+                }elseif (!isset($orderData['status'])) {
+                    $orderData['status'] = '<no status>';
+                }
+
                 $movedToProcessing = self::hasOrderStateProcessing($orderData['status'])
                     && !self::hasOrderStateProcessing($existingEntity->getData('status'));
                 $movedToCancel = $orderData['status'] == self::MAGENTO_STATUS_CANCELED
