@@ -1051,7 +1051,7 @@ $storeDataByStoreId = array(key($storeDataByStoreId)=>current($storeDataByStoreI
 
                     $restResult = NULL;
 
-                    $updateViaDbApi = ($this->restV1 && $localId && $storeId == 0);
+                    $updateViaDbApi = ($this->db && $localId && $storeId == 0);
                     if ($updateViaDbApi) {
                         $api = 'db';
                     }else{
