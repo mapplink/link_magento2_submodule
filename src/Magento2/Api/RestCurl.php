@@ -391,24 +391,36 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
                         $escapedKey = urlencode($key);
                         $escapedValue = urlencode($value);
 
-                        if ($key != $escapedKey || $value != $escapedValue) {
-                            $logCode = $this->getLogCodePrefix().'_url__err';
+                        $logData = array(
+                            'key'=>$key,
+                            'escaped key'=>$escapedKey,
+                            'value'=>$value,
+                            'escaped value'=>$escapedValue,
+                            'fields'=>$urlParameters
+                        );
+
+                        if ($key != $escapedKey) {
+                            $logLevel = LogService::LEVEL_ERROR;
+                            $logCode = $this->getLogCodePrefix().'_url_err';
                             $logMessage = $this->requestType.' field key-value pair is not valid.';
-                            $logData = array(
-                                'key'=>$key,
-                                'escaped key'=>$escapedKey,
-                                'value'=>$value,
-                                'escaped value'=>$escapedValue,
-                                'fields'=>$urlParameters
-                            );
-                            $this->getServiceLocator()->get('logService')
-                                ->log(LogService::LEVEL_ERROR, $logCode, $logMessage, $logData);
-                            /** TECHNICAL DEBT // ToDo */
+
                             throw new MagelinkException($logMessage);
                             $parameters = array();
                             break;
-                        }else {
-                            $parameters['searchCriteria']['filterGroups'][0]['filters'][$filterKey][$key] = $value;
+                        }else{
+                            if ($value != $escapedValue) {
+                                $logLevel = LogService::LEVEL_WARN;
+                                $logCode = $this->getLogCodePrefix().'_url_esc';
+                                $logMessage = $this->requestType.' value had to be escaped.';
+                                unset($logData['escaped key']);
+                            }
+
+                            $parameters['searchCriteria']['filterGroups'][0]['filters'][$filterKey][$key] = $escapedValue;
+                        }
+
+                        if (isset($logLevel)) {
+                            $this->getServiceLocator()->get('logService')
+                                ->log($logLevel, $logCode, $logMessage, $logData);
                         }
                     }
 
