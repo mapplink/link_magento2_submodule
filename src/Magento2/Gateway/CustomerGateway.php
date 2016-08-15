@@ -295,7 +295,7 @@ class CustomerGateway extends AbstractGateway
      * Create an individual Address entity for a customer
      *
      * @param array $addressData
-     * @param object $customer
+     * @param \Entity\Entity $customer
      * @param string $type "billing" or "shipping"
      * @param EntityService $entityService
      * @return \Entity\Entity|NULL $addressEntity
@@ -341,7 +341,9 @@ class CustomerGateway extends AbstractGateway
                 $this->_node->getNodeId(),
                 'address',
                 ($this->_node->isMultiStore() ? $customer->store_id : 0),
-                $uniqueId, $data
+                $uniqueId,
+                $data,
+                $customer->getId()
             );
             $entityService->linkEntity($this->_node->getNodeId(), $addressEntity, $addressData['id']);
         }else{
