@@ -81,6 +81,11 @@ class OrderGateway extends AbstractGateway
         self::MAGENTO_STATUS_CANCELED
     );
 
+    private static $magentoCanceledStatusses = array(
+        self::MAGENTO_STATUS_CANCELED,
+        self::MAGENTO_STATUS_PAYPAL_REVERSED
+    );
+
     /** @var array $notRetrievedOrderIncrementIds */
     protected $notRetrievedOrderIncrementIds = NULL;
 
@@ -176,6 +181,16 @@ class OrderGateway extends AbstractGateway
     {
         $hasOrderStateProcessing = in_array($orderStatus, self::$magentoProcessingStatusses);
         return $hasOrderStateProcessing;
+    }
+
+    /**
+     * @param $orderStatus
+     * @return bool
+     */
+    public static function hasOrderStateCanceled($orderStatus)
+    {
+        $hasOrderStateCanceled = in_array($orderStatus, self::$magentoCanceledStatusses);
+        return $hasOrderStateCanceled;
     }
 
     /**
