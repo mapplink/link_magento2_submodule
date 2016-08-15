@@ -173,11 +173,8 @@ class CustomerGateway extends AbstractGateway
                         );
                 }
 
-                /** @var EntityService $entityService */
-                $entityService = $this->getServiceLocator()->get('entityService');
-
                 if ($this->_node->getConfig('load_full_customer')) {
-                    $data = array_merge($data, $this->createAddresses($customer, $entityService));
+                    $data = array_merge($data, $this->createAddresses($customer));
 
                     if ($this->db) {
                         try {
@@ -191,13 +188,13 @@ class CustomerGateway extends AbstractGateway
                 /** @var boolean $needsUpdate Whether we need to perform an entity update here */
                 $needsUpdate = TRUE;
 
-                $existingEntity = $entityService
+                $existingEntity = $this->_entityService
                     ->loadEntityLocal($this->_node->getNodeId(), 'customer', 0, $localId);
                 if (!$existingEntity) {
-                    $existingEntity = $entityService
+                    $existingEntity = $this->_entityService
                         ->loadEntity($this->_node->getNodeId(), 'customer', $storeId, $uniqueId);
                     if (!$existingEntity) {
-                        $existingEntity = $entityService->createEntity(
+                        $existingEntity = $this->_entityService->createEntity(
                             $this->_node->getNodeId(),
                             'customer',
                             $storeId,
@@ -205,7 +202,7 @@ class CustomerGateway extends AbstractGateway
                             $data,
                             $parentId
                         );
-                        $entityService->linkEntity($this->_node->getNodeId(), $existingEntity, $localId);
+                        $this->_entityService->linkEntity($this->_node->getNodeId(), $existingEntity, $localId);
                         $this->getServiceLocator()->get('logService')
                             ->log(LogService::LEVEL_INFO,
                                 $this->getLogCode().'_new',
@@ -214,7 +211,7 @@ class CustomerGateway extends AbstractGateway
                                 array('node'=>$this->_node, 'entity'=>$existingEntity)
                             );
                         $needsUpdate = false;
-                    }elseif ($entityService->getLocalId($this->_node->getNodeId(), $existingEntity) != NULL) {
+                    }elseif ($this->_entityService->getLocalId($this->_node->getNodeId(), $existingEntity) != NULL) {
                         $this->getServiceLocator()->get('logService')
                             ->log(LogService::LEVEL_INFO,
                                 $this->getLogCode().'_relink',
@@ -222,8 +219,8 @@ class CustomerGateway extends AbstractGateway
                                 array('code'=>$uniqueId),
                                 array('node'=>$this->_node, 'entity'=>$existingEntity)
                             );
-                        $entityService->unlinkEntity($this->_node->getNodeId(), $existingEntity);
-                        $entityService->linkEntity($this->_node->getNodeId(), $existingEntity, $localId);
+                        $this->_entityService->unlinkEntity($this->_node->getNodeId(), $existingEntity);
+                        $this->_entityService->linkEntity($this->_node->getNodeId(), $existingEntity, $localId);
                     }else{
                         $this->getServiceLocator()->get('logService')
                             ->log(LogService::LEVEL_INFO,
@@ -232,7 +229,7 @@ class CustomerGateway extends AbstractGateway
                                 array('code'=>$uniqueId),
                                 array('node'=>$this->_node, 'entity'=>$existingEntity)
                             );
-                        $entityService->linkEntity($this->_node->getNodeId(), $existingEntity, $localId);
+                        $this->_entityService->linkEntity($this->_node->getNodeId(), $existingEntity, $localId);
                     }
                 }else{
                     $this->getServiceLocator()->get('logService')
@@ -244,7 +241,7 @@ class CustomerGateway extends AbstractGateway
                         );
                 }
                 if ($needsUpdate) {
-                    $entityService->updateEntity($this->_node->getNodeId(), $existingEntity, $data, FALSE);
+                    $this->_entityService->updateEntity($this->_node->getNodeId(), $existingEntity, $data, FALSE);
                 }
             }
         }else{
@@ -268,20 +265,19 @@ class CustomerGateway extends AbstractGateway
     /**
      * Create the Address entities for a given customer and pass them back as the appropriate attributes
      * @param array $customerData
-     * @param EntityService $entityService
      * @return array $data
      * @throws GatewayException
      */
-    protected function createAddresses($customer, EntityService $entityService)
+    protected function createAddresses($customer)
     {
         $data = array();
 
         foreach ($customer['addresses']  as $address) {
             if (isset($address['default_billing']) && $address['default_billing']) {
-                $data['billing_address'] = $this->createAddressEntity($address, $customer, 'billing', $entityService);
+                $data['billing_address'] = $this->createAddressEntity($address, $customer, 'billing');
             }
             if (isset($address['default_shipping']) && $address['default_shipping']) {
-                $data['shipping_address'] = $this->createAddressEntity($address, $customer, 'shipping', $entityService);
+                $data['shipping_address'] = $this->createAddressEntity($address, $customer, 'shipping');
             }
             if (!isset($data['billing_address']) && !isset($data['shipping_address'])) {
                 // TECHNICAL DEBT // ToDo: Store this maybe? For now ignore
@@ -297,16 +293,15 @@ class CustomerGateway extends AbstractGateway
      * @param array $addressData
      * @param \Entity\Entity $customer
      * @param string $type "billing" or "shipping"
-     * @param EntityService $entityService
      * @return \Entity\Entity|NULL $addressEntity
      * @throws MagelinkException
      * @throws NodeException
      */
-    protected function createAddressEntity(array $addressData, $customer, $type, EntityService $entityService)
+    protected function createAddressEntity(array $addressData, $customer, $type)
     {
         $uniqueId = 'cust-'.$customer['id'].'-'.$type;
 
-        $addressEntity = $entityService->loadEntity(
+        $addressEntity = $this->_entityService->loadEntity(
             $this->_node->getNodeId(),
             'address',
             ($this->_node->isMultiStore() ? $customer->store_id : 0),
@@ -337,7 +332,7 @@ class CustomerGateway extends AbstractGateway
         );
 
         if (!$addressEntity) {
-            $addressEntity = $entityService->createEntity(
+            $addressEntity = $this->_entityService->createEntity(
                 $this->_node->getNodeId(),
                 'address',
                 ($this->_node->isMultiStore() ? $customer->store_id : 0),
@@ -345,9 +340,9 @@ class CustomerGateway extends AbstractGateway
                 $data,
                 $customer->getId()
             );
-            $entityService->linkEntity($this->_node->getNodeId(), $addressEntity, $addressData['id']);
+            $this->_entityService->linkEntity($this->_node->getNodeId(), $addressEntity, $addressData['id']);
         }else{
-            $entityService->updateEntity($this->_node->getNodeId(), $addressEntity, $data, FALSE);
+            $this->_entityService->updateEntity($this->_node->getNodeId(), $addressEntity, $data, FALSE);
         }
 
         return $addressEntity;
@@ -366,9 +361,7 @@ class CustomerGateway extends AbstractGateway
 
         // TECHNICAL DEBT // ToDo: Implement writeUpdates() method.
 
-        /** @var \Entity\Service\EntityService $entityService */
-/*        $entityService = $this->getServiceLocator()->get('entityService');
-
+/*
         $additionalAttributes = $this->_node->getConfig('customer_attributes');
         if (is_string($additionalAttributes)) {
             $additionalAttributes = explode(',', $additionalAttributes);
@@ -468,7 +461,7 @@ class CustomerGateway extends AbstractGateway
             if (!$res) {
                 throw new MagelinkException('Error creating customer in Magento2 (' . $entity->getUniqueId() . '!');
             }
-            $entityService->linkEntity($this->_node->getNodeId(), $entity, $res);
+            $this->_entityService->linkEntity($this->_node->getNodeId(), $entity, $res);
         }
 */
     }
@@ -482,9 +475,7 @@ class CustomerGateway extends AbstractGateway
     {
         return FALSE;
 
-        /** @var \Entity\Service\EntityService $entityService */
-/*        $entityService = $this->getServiceLocator()->get('entityService');
-
+/*
         $entity = $action->getEntity();
 
         switch($action->getType()) {
