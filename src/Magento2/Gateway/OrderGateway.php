@@ -354,7 +354,7 @@ class OrderGateway extends AbstractGateway
                 array_key_exists('customer_firstname', $orderData) ? $orderData['customer_firstname'].' ' : '')
                 .(array_key_exists('customer_lastname', $orderData) ? $orderData['customer_lastname'] : ''
                 ),
-            'status'=>$orderData['status'],
+            'status'=>(isset($orderData['status']) ? $orderData['status'] : NULL),
             'placed_at'=>date('Y-m-d H:i:s', strtotime($correctionHours, $createdAtTimestamp)),
             'grand_total'=>$orderData['base_grand_total'],
             'base_to_currency_rate'=>$orderData['base_to_order_rate'],
@@ -518,7 +518,7 @@ class OrderGateway extends AbstractGateway
         if ($needsUpdate) {
             try{
                 $oldStatus = $existingEntity->getData('status', NULL);
-                $statusChanged = $oldStatus != $data['status'];
+                $statusChanged = ($oldStatus != $data['status']);
                 if (!$orderComment && $statusChanged) {
                     $orderComment = array(
                         'Status change'=>'Order #'.$uniqueId.' moved from '.$oldStatus.' to '.$data['status']
@@ -532,11 +532,16 @@ class OrderGateway extends AbstractGateway
                     $this->getServiceLocator()->get('logService')
                         ->log(LogService::LEVEL_ERROR, 'mg2_o_nostatus',
                             'No status on order '.$uniqueId.'. Inserted state instead.', array('order data'=>$orderData));
-                }elseif ($statusChanged && !isset($orderData['status'])) {
+                }elseif (!isset($oldStatus) && !isset($orderData['status'])) {
                     $orderData['status'] = '<no status>';
                     $this->getServiceLocator()->get('logService')
                         ->log(LogService::LEVEL_ERROR, 'mg2_o_nostus_err',
                             'No status on order '.$uniqueId.'. Inserted placeholder.', array('order data'=>$orderData));
+                }elseif (isset($oldStatus) && !isset($orderData['status'])) {
+                    $this->getServiceLocator()->get('logService')
+                        ->log(LogService::LEVEL_ERROR, 'mg2_o_nostus_err',
+                            'No status on order '.$uniqueId.'. Kept old status.',
+                            array('old status'=>$oldStatus, 'order data'=>$orderData));
                 }
 
                 $movedToProcessing = self::hasOrderStateProcessing($orderData['status'])
