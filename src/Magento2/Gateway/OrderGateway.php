@@ -527,9 +527,16 @@ class OrderGateway extends AbstractGateway
 
                 if (!isset($orderData['status']) && isset($oldStatus)) {
                     $orderData['status'] = $oldStatus;
-
-                }elseif (!isset($orderData['status'])) {
+                }elseif ($statusChanged && !isset($orderData['status']) && isset($orderData['state'])) {
+                    $orderData['status'] = $orderData['state'];
+                    $this->getServiceLocator()->get('logService')
+                        ->log(LogService::LEVEL_ERROR, 'mg2_o_nostatus',
+                            'No status on order '.$uniqueId.'. Inserted state instead.', array('order data'=>$orderData));
+                }elseif ($statusChanged && !isset($orderData['status'])) {
                     $orderData['status'] = '<no status>';
+                    $this->getServiceLocator()->get('logService')
+                        ->log(LogService::LEVEL_ERROR, 'mg2_o_nostus_err',
+                            'No status on order '.$uniqueId.'. Inserted placeholder.', array('order data'=>$orderData));
                 }
 
                 $movedToProcessing = self::hasOrderStateProcessing($orderData['status'])
