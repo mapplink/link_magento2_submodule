@@ -978,7 +978,6 @@ $storeDataByStoreId = array(key($storeDataByStoreId)=>current($storeDataByStoreI
                     }
 
                     $dataToMap = $this->getMagento2Service()->mapProductData($data, $storeId, FALSE, TRUE);
-var_dump($data);var_dump($dataToMap);
 
                     if ($this->getMagento2Service()->isStoreUsingDefaults($storeId)) {
                         $dataToCheck = $data;
@@ -1025,7 +1024,6 @@ var_dump($data);var_dump($dataToMap);
 
                     $restData = $this->getUpdateDataForRestCall($product, $productData, $customAttributes);
                     $restData['extension_attributes']['stock_item'] = $stockitemData;
-var_dump($restData);
 
                     $logData = array(
                         'type'=>$entity->getData('type'),
