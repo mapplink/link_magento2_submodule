@@ -135,21 +135,21 @@ class CustomerGateway extends AbstractGateway
                 }
             }
 
-            foreach ($results as $customer) {
+            foreach ($results as $customerData) {
                 $data = array();
 
-                $uniqueId = $customer['email'];
-                $localId = $customer['id'];
-                $storeId = ($this->_node->isMultiStore() ? $customer['store_id'] : 0);
+                $uniqueId = $customerData['email'];
+                $localId = $customerData['id'];
+                $storeId = ($this->_node->isMultiStore() ? $customerData['store_id'] : 0);
                 $parentId = NULL;
 
-                $data['first_name'] = (isset($customer['firstname']) ? $customer['firstname'] : NULL);
-                $data['middle_name'] = (isset($customer['middlename']) ? $customer['middlename'] : NULL);
-                $data['last_name'] = (isset($customer['lastname']) ? $customer['lastname'] : NULL);
-                $data['date_of_birth'] = (isset($customer['dob']) ? $customer['dob'] : NULL);
+                $data['first_name'] = (isset($customerData['firstname']) ? $customerData['firstname'] : NULL);
+                $data['middle_name'] = (isset($customerData['middlename']) ? $customerData['middlename'] : NULL);
+                $data['last_name'] = (isset($customerData['lastname']) ? $customerData['lastname'] : NULL);
+                $data['date_of_birth'] = (isset($customerData['dob']) ? $customerData['dob'] : NULL);
 
 /*                if ($specialAtt) {
-                    $data[$specialAtt] = (isset($customer['taxvat']) ? $customer['taxvat'] : NULL);
+                    $data[$specialAtt] = (isset($customerData['taxvat']) ? $customerData['taxvat'] : NULL);
                 }
                 if (count($additionalAttributes) && $this->restV1) {
                     // TECHNICAL DEBT // ToDo: Extract extra information from the first REST call ($results)
@@ -162,31 +162,16 @@ class CustomerGateway extends AbstractGateway
                     }
                 }
 */
-                if (isset($this->customerGroups[intval($customer['group_id'])])) {
-                    $data['customer_type'] = $this->customerGroups[intval($customer['group_id'])]['code'];
+                if (isset($this->customerGroups[intval($customerData['group_id'])])) {
+                    $data['customer_type'] = $this->customerGroups[intval($customerData['group_id'])]['code'];
                 }else{
                     $this->getServiceLocator()->get('logService')
                         ->log(LogService::LEVEL_WARN,
                             $this->getLogCode().'_ukwn_grp',
-                            'Unknown customer group ID '.$customer['group_id'],
-                            array('group'=>$customer['group_id'], 'unique'=>$customer['email'])
+                            'Unknown customer group ID '.$customerData['group_id'],
+                            array('group'=>$customerData['group_id'], 'unique'=>$customerData['email'])
                         );
                 }
-
-                if ($this->_node->getConfig('load_full_customer')) {
-                    $data = array_merge($data, $this->createAddresses($customer));
-
-                    if ($this->db) {
-                        try {
-                            $data['enable_newsletter'] = $this->db->getNewsletterStatus($localId);
-                        }catch (\Exception $exception) {
-                            throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
-                        }
-                    }
-                }
-
-                /** @var boolean $needsUpdate Whether we need to perform an entity update here */
-                $needsUpdate = TRUE;
 
                 $existingEntity = $this->_entityService
                     ->loadEntityLocal($this->_node->getNodeId(), 'customer', 0, $localId);
@@ -210,7 +195,6 @@ class CustomerGateway extends AbstractGateway
                                 array('code'=>$uniqueId),
                                 array('node'=>$this->_node, 'entity'=>$existingEntity)
                             );
-                        $needsUpdate = false;
                     }elseif ($this->_entityService->getLocalId($this->_node->getNodeId(), $existingEntity) != NULL) {
                         $this->getServiceLocator()->get('logService')
                             ->log(LogService::LEVEL_INFO,
@@ -240,9 +224,21 @@ class CustomerGateway extends AbstractGateway
                             array('node'=>$this->_node, 'entity'=>$existingEntity)
                         );
                 }
-                if ($needsUpdate) {
-                    $this->_entityService->updateEntity($this->_node->getNodeId(), $existingEntity, $data, FALSE);
+
+                if ($this->_node->getConfig('load_full_customer')) {
+                    $customerData['magelink_entity_id'] = $existingEntity->getId();
+                    $data = array_merge($data, $this->createAddresses($customerData));
+
+                    if ($this->db) {
+                        try {
+                            $data['enable_newsletter'] = $this->db->getNewsletterStatus($localId);
+                        }catch (\Exception $exception) {
+                            throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
+                        }
+                    }
                 }
+
+                $this->_entityService->updateEntity($this->_node->getNodeId(), $existingEntity, $data, FALSE);
             }
         }else{
             // Nothing worked
@@ -338,7 +334,7 @@ class CustomerGateway extends AbstractGateway
                 ($this->_node->isMultiStore() ? $customer->store_id : 0),
                 $uniqueId,
                 $data,
-                $customer->getId()
+                $customer['magelink_entity_id']
             );
             $this->_entityService->linkEntity($this->_node->getNodeId(), $addressEntity, $addressData['id']);
         }else{
