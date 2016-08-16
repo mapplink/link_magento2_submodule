@@ -442,10 +442,9 @@ class OrderGateway extends AbstractGateway
             if (!$existingEntity) {
                 $this->_entityService->beginEntityTransaction('magento2-order-'.$uniqueId);
                 try{
-                    $data = array_merge(
-                        $this->createAddresses($orderData),
-                        $data
-                    );
+                    $data = array_merge($this->createAddresses($orderData), $data);
+                    $movedToProcessing = self::hasOrderStateProcessing($data['status']);
+
                     $existingEntity = $this->_entityService->createEntity(
                         $this->_node->getNodeId(),
                         'order',
@@ -550,9 +549,9 @@ class OrderGateway extends AbstractGateway
                     && !self::hasOrderStateCanceled($existingEntity->getData('status'));
                 $this->_entityService->updateEntity($this->_node->getNodeId(), $existingEntity, $data, FALSE);
 
+                /** @var Order $order */
                 $order = $this->_entityService->loadEntityId($this->_node->getNodeId(), $existingEntity->getId());
                 if ($movedToProcessing || $movedToCancel) {
-                    /** @var Order $order */
                     foreach ($order->getOrderitems() as $orderitem) {
                         $this->updateStockQuantities($order, $orderitem);
                     }
