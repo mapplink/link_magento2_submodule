@@ -528,21 +528,25 @@ class OrderGateway extends AbstractGateway
 
                 if (!isset($orderData['status']) && isset($oldStatus)) {
                     $orderData['status'] = $oldStatus;
+
                 }elseif ($statusChanged && !isset($orderData['status']) && isset($orderData['state'])) {
                     $orderData['status'] = $orderData['state'];
                     $this->getServiceLocator()->get('logService')
                         ->log(LogService::LEVEL_ERROR, 'mg2_o_nostatus',
-                            'No status on order '.$uniqueId.'. Inserted state instead.', array('order data'=>$orderData));
+                            'No status on order '.$uniqueId.'. Inserted state instead.',
+                            array('order'=>$uniqueId, 'order status'=>$orderData['state']));
+
                 }elseif (!isset($oldStatus) && !isset($orderData['status'])) {
                     $orderData['status'] = '<no status>';
                     $this->getServiceLocator()->get('logService')
                         ->log(LogService::LEVEL_ERROR, 'mg2_o_nostus_err',
-                            'No status on order '.$uniqueId.'. Inserted placeholder.', array('order data'=>$orderData));
+                            'No status on order '.$uniqueId.'. Inserted placeholder.', array('order'=>$uniqueId));
+
                 }elseif (isset($oldStatus) && !isset($orderData['status'])) {
                     $this->getServiceLocator()->get('logService')
                         ->log(LogService::LEVEL_ERROR, 'mg2_o_nostus_err',
                             'No status on order '.$uniqueId.'. Kept old status.',
-                            array('old status'=>$oldStatus, 'order data'=>$orderData));
+                            array('order'=>$uniqueId, 'old status'=>$oldStatus));
                 }
 
                 $movedToProcessing = self::hasOrderStateProcessing($orderData['status'])
