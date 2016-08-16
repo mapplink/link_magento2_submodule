@@ -341,6 +341,7 @@ class OrderGateway extends AbstractGateway
         }
         $correctionHours = sprintf('%+d hours', intval($this->_node->getConfig('time_correction_order')));
 
+        $nodeId = $this->_node->getNodeId();
         $storeId = ($this->_node->isMultiStore() ? $orderData['store_id'] : 0);
         $uniqueId = $orderData['increment_id'];
         $localId = isset($orderData['entity_id']) ? $orderData['entity_id'] : $orderData['order_id'];
@@ -409,7 +410,6 @@ class OrderGateway extends AbstractGateway
         }
 
         if (isset($orderData['customer_id']) && $orderData['customer_id']) {
-            $nodeId = $this->_node->getNodeId();
             $customer = $this->_entityService
                 ->loadEntityLocal($nodeId, 'customer', $this->getCustomerStoreId($storeId), $orderData['customer_id']);
                 //->loadEntity($nodeId, 'customer', $this->getCustomerStoreId($storeId), $orderData['customer_email']);
@@ -527,14 +527,15 @@ class OrderGateway extends AbstractGateway
 
                 if (!isset($orderData['status']) && isset($oldStatus)) {
                     $orderData['status'] = $oldStatus;
+
                 }elseif (!isset($orderData['status'])) {
                     $orderData['status'] = '<no status>';
                 }
 
                 $movedToProcessing = self::hasOrderStateProcessing($orderData['status'])
                     && !self::hasOrderStateProcessing($existingEntity->getData('status'));
-                $movedToCancel = $orderData['status'] == self::MAGENTO_STATUS_CANCELED
-                    && $existingEntity->getData('status') != self::MAGENTO_STATUS_CANCELED;
+                $movedToCancel = self::hasOrderStateCanceled($orderData['status'])
+                    && !self::hasOrderStateCanceled($existingEntity->getData('status'));
                 $this->_entityService->updateEntity($this->_node->getNodeId(), $existingEntity, $data, FALSE);
 
                 $order = $this->_entityService->loadEntityId($this->_node->getNodeId(), $existingEntity->getId());
@@ -549,34 +550,46 @@ class OrderGateway extends AbstractGateway
             }
         }
 
-        try{
-            if ($orderComment) {
+        $logData = array('order'=>$uniqueId, 'orderData'=>$orderData);
+        $logEntities = array('entity'=>$existingEntity);
+
+        if ($movedToCancel) {
+            try{
+                $this->_entityService
+                    ->dispatchAction($nodeId, $order, 'cancel', array('status'=>$orderData['status']));
+            }catch (\Exception $exception){
+                $logData['error'] = $exception->getMessage();
+                $this->getServiceLocator()->get('logService')
+                    ->log(LogService::LEVEL_ERROR, $this->getLogCode().'_w_aerr'.$logCodeSuffix,
+                        'Moved to cancel action creation failed on order '.$uniqueId.'.', $logData, $logEntities);
+            }
+        }
+
+        if ($orderComment) {
+            try{
                 if (!is_array($orderComment)) {
                     $orderComment = array($orderComment=>$orderComment);
                 }
                 $this->_entityService
                     ->createEntityComment($existingEntity, 'Magento2', key($orderComment), current($orderComment));
+            }catch (\Exception $exception) {
+                $logData['order comment array'] = $orderComment;
+                $logData['error'] = $exception->getMessage();
+                $this->getServiceLocator()->get('logService')
+                    ->log(LogService::LEVEL_ERROR, $this->getLogCode().'_w_cerr'.$logCodeSuffix,
+                        'Comment creation failed on order '.$uniqueId.'.', $logData, $logEntities);
             }
-        }catch (\Exception $exception) {
-            $this->getServiceLocator()->get('logService')
-                ->log(LogService::LEVEL_ERROR,
-                    $this->getLogCode().'_w_cerr'.$logCodeSuffix,
-                    'Comment creation failed on order '.$uniqueId.'.',
-                    array('order'=>$uniqueId, 'order comment array'=>$orderComment, 'error'=>$exception->getMessage()),
-                    array('entity'=>$existingEntity, 'exception'=>$exception)
-                );
         }
 
         try{
             $this->updateStatusHistory($orderData, $existingEntity);
         }catch (\Exception $exception) {
+            array('order'=>$uniqueId, 'order data'=>$orderData, 'error'=>$exception->getMessage()),
+            $logData['error'] = $exception->getMessage();
             $this->getServiceLocator()->get('logService')
                 ->log(LogService::LEVEL_ERROR,
                     $this->getLogCode().'_w_herr'.$logCodeSuffix,
-                    'Updating of the status history failed on order '.$uniqueId.'.',
-                    array('order'=>$uniqueId, 'order data'=>$orderData, 'error'=>$exception->getMessage()),
-                    array('entity'=>$existingEntity, 'exception'=>$exception)
-                );
+                    'Updating of the status history failed on order '.$uniqueId.'.', $logData, $logEntities);
         }
     }
 
