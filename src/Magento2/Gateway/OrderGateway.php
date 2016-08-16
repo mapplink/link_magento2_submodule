@@ -489,6 +489,8 @@ class OrderGateway extends AbstractGateway
                     $this->_entityService->rollbackEntityTransaction('magento2-order-'.$uniqueId);
                     throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
                 }
+
+                $success = TRUE;
                 $needsUpdate = FALSE;
             }else{
                 $this->getServiceLocator()->get('logService')->log($logLevel,
@@ -547,7 +549,8 @@ class OrderGateway extends AbstractGateway
                     && !self::hasOrderStateProcessing($existingEntity->getData('status'));
                 $movedToCancel = self::hasOrderStateCanceled($orderData['status'])
                     && !self::hasOrderStateCanceled($existingEntity->getData('status'));
-                $this->_entityService->updateEntity($this->_node->getNodeId(), $existingEntity, $data, FALSE);
+                $success = $this->_entityService
+                    ->updateEntity($this->_node->getNodeId(), $existingEntity, $data, FALSE);
 
                 /** @var Order $order */
                 $order = $this->_entityService->loadEntityId($this->_node->getNodeId(), $existingEntity->getId());
@@ -558,17 +561,26 @@ class OrderGateway extends AbstractGateway
                 }
             }catch (\Exception $exception) {
                 throw new GatewayException('Needs update: '.$exception->getMessage(), 0, $exception);
+                $success = FALSE;
             }
         }
 
         $logData = array('order'=>$uniqueId, 'orderData'=>$orderData);
         $logEntities = array('entity'=>$existingEntity);
 
-        if ($movedToCancel) {
-            try{
+        if ($movedToProcessing) {
+            $action = 'addPayment';
+        }elseif ($movedToCancel) {
+            $action = 'cancel';
+        }else{
+            $action = NULL;
+        }
+
+        if (is_string($action) && strlen($action) > 0) {
+            try {
                 $this->_entityService
-                    ->dispatchAction($nodeId, $order, 'cancel', array('status'=>$orderData['status']));
-            }catch (\Exception $exception){
+                    ->dispatchAction($nodeId, $order, $action, array('status'=>$orderData['status']));
+            }catch (\Exception $exception) {
                 $logData['error'] = $exception->getMessage();
                 $this->getServiceLocator()->get('logService')
                     ->log(LogService::LEVEL_ERROR, $this->getLogCode().'_w_aerr'.$logCodeSuffix,
@@ -595,13 +607,15 @@ class OrderGateway extends AbstractGateway
         try{
             $this->updateStatusHistory($orderData, $existingEntity);
         }catch (\Exception $exception) {
-            array('order'=>$uniqueId, 'order data'=>$orderData, 'error'=>$exception->getMessage()),
+            $logData['order data'] = $orderData;
             $logData['error'] = $exception->getMessage();
             $this->getServiceLocator()->get('logService')
                 ->log(LogService::LEVEL_ERROR,
                     $this->getLogCode().'_w_herr'.$logCodeSuffix,
                     'Updating of the status history failed on order '.$uniqueId.'.', $logData, $logEntities);
         }
+
+        return $success;
     }
 
     /**
