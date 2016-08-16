@@ -623,9 +623,9 @@ class OrderGateway extends AbstractGateway
     }
 
     /**
-     * Retrieve and action all updated records (either from polling, pushed data, or other sources).
+     * Retrieve and action all updated records(either from polling, pushed data, or other sources).
+     * @return int $numberOfRetrievedEntities
      * @throws GatewayException
-     * @throws MagelinkException
      * @throws NodeException
      */
     public function retrieveEntities()
@@ -637,7 +637,8 @@ class OrderGateway extends AbstractGateway
                 array('type'=>'order', 'timestamp'=>$this->lastRetrieveDate)
             );
 
-        $success = NULL;
+        $storedOrders = 0;
+
         if (FALSE && $this->db) {
             try{
                 // TECHNICAL DEBT // ToDo (maybe): Implement
@@ -646,7 +647,9 @@ class OrderGateway extends AbstractGateway
                 foreach ($orders as $order) {
                     $orderData = (array) $order;
                     if ($this->isOrderToBeRetrieved($orderData)) {
-                        $success = $this->storeOrderData($orderData);
+                        if ($this->storeOrderData($orderData)) {
+                            ++$storedOrders;
+                        }
                     }
                 }
             }catch (\Exception $exception) {
@@ -676,7 +679,9 @@ class OrderGateway extends AbstractGateway
                 foreach ($orders as $order) {
                     $orderData = (array) $order;
                     if ($this->isOrderToBeRetrieved($orderData)) {
-                        $this->storeOrderData($orderData);
+                        if ($this->storeOrderData($orderData)) {
+                            ++$storedOrders;
+                        }
                     }
                 }
             }catch(\Exception $exception) {
@@ -714,6 +719,8 @@ class OrderGateway extends AbstractGateway
             // store as sync issue
            throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
         }
+
+        return $storedOrders;
     }
 
     /**

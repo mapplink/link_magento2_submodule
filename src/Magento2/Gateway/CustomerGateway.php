@@ -64,10 +64,10 @@ class CustomerGateway extends AbstractGateway
     }
 
     /**
-     * Retrieve and action all updated records (either from polling, pushed data, or other sources).
-     * @throws MagelinkException
-     * @throws NodeException
+     * Retrieve and action all updated records(either from polling, pushed data, or other sources).
+     * @return int $numberOfRetrievedEntities
      * @throws GatewayException
+     * @throws NodeException
      */
     public function retrieveEntities()
     {
@@ -256,6 +256,8 @@ class CustomerGateway extends AbstractGateway
         }
         $this->getServiceLocator()->get('logService')
             ->log(LogService::LEVEL_INFO, $this->getLogCode().'_re_no', $message, $logData);
+
+        return count($results);
     }
 
     /**
