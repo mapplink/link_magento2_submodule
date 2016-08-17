@@ -860,7 +860,6 @@ $storeIds = array(current($storeIds));
 
         }else{
             $restData = $data;
-
             $customAttributes = array();
             $customAttributeCodes = array_merge(
                 $customAttributeCodes,
@@ -964,7 +963,7 @@ $storeIds = array(current($storeIds));
 
             $storeDataByStoreId = $this->_node->getStoreViews();
 // TECHNICAL DEBT // ToDo: Hardcoded to default store
-$storeDataByStoreId = array(key($storeDataByStoreId)=>current($storeDataByStoreId));
+$storeDataByStoreId = array(0=>current($storeDataByStoreId));
 
             if (count($storeDataByStoreId) > 0 && $type != Update::TYPE_DELETE) {
                 $websiteIds = array();
@@ -1004,7 +1003,7 @@ $storeDataByStoreId = array(key($storeDataByStoreId)=>current($storeDataByStoreI
                 }
                 unset($dataToMap, $dataToCheck);
 
-                $storeIds = array_merge(array(0), array_keys($storeDataByStoreId));
+                $storeIds = array_unique(array_merge(array(0), array_keys($storeDataByStoreId)));
 
                 $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUGINTERNAL,
                     $this->getLogCode().'_wrupd_stor',
