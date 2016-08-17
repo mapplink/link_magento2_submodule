@@ -1030,23 +1030,6 @@ if (isset($storeDataByStoreId[0])) { $storeDataByStoreId = array(0=>$storeDataBy
                         'restData'=>$restData
                     );
 
-                    if ($type == Update::TYPE_UPDATE) {
-                        foreach ($productData as $attributeCode=>$attributeValue) {
-                            if (!in_array($attributeCode, $attributeCodes)) {
-                                unset($productData[$attributeCode]);
-                            }
-                        }
-                        $updateRestData = $this->getUpdateDataForRestCall($product, $productData, $customAttributes);
-                        $updateRestData['extension_attributes']['stock_item'] = $stockitemData;
-
-                        if (count($updateRestData) == 0) {
-                            // ToDo: Check if products exists remotely
-                                // if not unset($localId) and change type to Update::TYPE_CREATE
-
-                            $logData['updateRestData'] = $updateRestData;
-                        }
-                    }
-
                     $restResult = NULL;
 
                     $updateViaDbApi = ($this->db && $localId && $storeId == 0);
@@ -1084,6 +1067,21 @@ if (isset($storeDataByStoreId[0])) { $storeDataByStoreId = array(0=>$storeDataBy
                             $logMessage .= 'successfully via DB api with '.implode(', ', array_keys($productData));
                         }else{
                             try{
+                                foreach ($productData as $attributeCode=>$attributeValue) {
+                                    if (!in_array($attributeCode, $attributeCodes)) {
+                                        unset($productData[$attributeCode]);
+                                    }
+                                }
+                                $updateRestData = $this->getUpdateDataForRestCall($product, $productData, $customAttributes);
+                                $updateRestData['extension_attributes']['stock_item'] = $stockitemData;
+
+                                if (count($updateRestData) == 0) {
+                                    // ToDo: Check if products exists remotely
+                                    // if not unset($localId) and change type to Update::TYPE_CREATE
+
+                                    $logData['updateRestData'] = $updateRestData;
+                                }
+
                                 $putData = array('product'=>$updateRestData);
                                 $restResult = array('update'=>
                                     $this->restV1->put('products/'.$sku, $putData));
