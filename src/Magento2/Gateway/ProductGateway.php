@@ -1096,15 +1096,19 @@ if (isset($storeDataByStoreId[0])) { $storeDataByStoreId = array(0=>$storeDataBy
                             }catch(\Exception $exception) {
                                 $restResult = FALSE;
                                 $type = Update::TYPE_CREATE;
-                            }
 
-                            $logLevel = ($restResult ? LogService::LEVEL_INFO : LogService::LEVEL_ERROR);
-                            $logCode = $this->getLogCode().'_wrupdrest';
-                            if ($api != 'restV1') {
-                                $logMessage = $api.' update failed. Removed local id '.$localId
-                                    .' from node '.$nodeId.'. '.$logMessage;
-                                if (isset($exception)) {
-                                    $logData[strtolower($api.' error')] = $exception->getMessage();
+                                $logLevel = ($restResult ? LogService::LEVEL_INFO : LogService::LEVEL_ERROR);
+                                $logCode = $this->getLogCode().'_wrupdrest';
+
+                                if ($api != 'restV1') {
+                                    $localId = NULL;
+                                    $this->_entityService->unlinkEntity($nodeId, $product);
+
+                                    $logMessage = $api.' update failed. Removed local id '.$localId
+                                        .' from node '.$nodeId.'. '.$logMessage;
+                                    if (isset($exception)) {
+                                        $logData[strtolower($api.' error')] = $exception->getMessage();
+                                    }
                                 }
                             }
 
@@ -1167,9 +1171,8 @@ if (isset($storeDataByStoreId[0])) { $storeDataByStoreId = array(0=>$storeDataBy
 
                                 $check = $this->restV1->get('products/'.$sku, array());
                                 if (!$check || !count($check)) {
-                                    throw new MagelinkException(
-                                        'Magento2 complained duplicate SKU but we cannot find a duplicate!'
-                                    );
+                                    $message = 'Magento2 complained duplicate SKU but we cannot find a duplicate!';
+                                    throw new MagelinkException($message);
 
                                 }else{
                                     $found = FALSE;
