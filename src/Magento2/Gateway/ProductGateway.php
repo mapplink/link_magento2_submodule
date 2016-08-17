@@ -963,7 +963,7 @@ $storeIds = array(current($storeIds));
 
             $storeDataByStoreId = $this->_node->getStoreViews();
 // TECHNICAL DEBT // ToDo: Hardcoded to default store
-$storeDataByStoreId = array(0=>current($storeDataByStoreId));
+if (isset($storeDataByStoreId[0])) { $storeDataByStoreId = array(0=>$storeDataByStoreId[0]); }else{ $storeDataByStoreId = array(0=>current($storeDataByStoreId)); }
 
             if (count($storeDataByStoreId) > 0 && $type != Update::TYPE_DELETE) {
                 $websiteIds = array();
@@ -1013,7 +1013,6 @@ $storeDataByStoreId = array(0=>current($storeDataByStoreId));
 
                 foreach ($storeIds as $storeId) {
                     $productData = $dataPerStore[$storeId];
-                    $productData['website_ids'] = $websiteIds;
 
                     if ($storeId != 0 || $this->getMagento2Service()->isStoreUsingDefaults($storeId)) {
                         unset($productData['special_price']);
