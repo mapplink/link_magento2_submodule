@@ -1099,20 +1099,20 @@ if (isset($storeDataByStoreId[0])) { $storeDataByStoreId = array(0=>$storeDataBy
 
                                 $logLevel = ($restResult ? LogService::LEVEL_INFO : LogService::LEVEL_ERROR);
                                 $logCode = $this->getLogCode().'_wrupdrest';
-
-                                if ($api != 'restV1') {
-                                    $localId = NULL;
-                                    $this->_entityService->unlinkEntity($nodeId, $product);
-
-                                    $logMessage = $api.' update failed. Removed local id '.$localId
-                                        .' from node '.$nodeId.'. '.$logMessage;
-                                    if (isset($exception)) {
-                                        $logData[strtolower($api.' error')] = $exception->getMessage();
-                                    }
-                                }
                             }
 
-                            $logMessage .= ($restResult ? 'successfully' : 'without success').' via REST api.'
+                            if (!$restResult) {
+                                $logMessage = $api.' update failed. Removed local id '.$localId
+                                    .' from node '.$nodeId.'. '.$logMessage;
+                                if (isset($exception)) {
+                                    $logData[strtolower($api.' error')] = $exception->getMessage();
+                                }
+
+                                $this->_entityService->unlinkEntity($nodeId, $product);
+                                $localId = NULL;
+                            }
+
+                            $logMessage .= ($restResult ? 'successfully' : 'without success').' via ReST api.'
                                 .($type == Update::TYPE_CREATE ? ' Try to create now.' : '');
                             $logData['rest data'] = $restData;
                             $logData['rest result'] = $restResult;
@@ -1140,7 +1140,7 @@ if (isset($storeDataByStoreId[0])) { $storeDataByStoreId = array(0=>$storeDataBy
                             throw new \Magelink\Exception\SyncException($message);
                         }
 
-                        $message = 'Creating product (REST) : '.$sku.' with '.implode(', ', array_keys($productData));
+                        $message = 'Creating product (ReST) : '.$sku.' with '.implode(', ', array_keys($productData));
                         $logData['set'] = $restData['attribute_set_id'];
                         $this->getServiceLocator()->get('logService')
                             ->log(LogService::LEVEL_INFO, $this->getLogCode().'_wr_cr', $message, $logData);
