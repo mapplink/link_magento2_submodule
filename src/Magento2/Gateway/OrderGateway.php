@@ -187,6 +187,16 @@ class OrderGateway extends AbstractGateway
      * @param $orderStatus
      * @return bool
      */
+    public static function hasFinalOrderState($orderStatus)
+    {
+        $hasOrderStateCanceled = in_array($orderStatus, self::$magentoFinalStatusses);
+        return $hasOrderStateCanceled;
+    }
+
+    /**
+     * @param $orderStatus
+     * @return bool
+     */
     public static function hasOrderStateCanceled($orderStatus)
     {
         $hasOrderStateCanceled = in_array($orderStatus, self::$magentoCanceledStatusses);
