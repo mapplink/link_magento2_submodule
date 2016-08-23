@@ -743,7 +743,7 @@ $storeIds = array(current($storeIds));
 
         $data = array();
 
-        foreach ($product->getFullArrayCopy() as $code=>$value) {
+        foreach ($product->getArrayCopy() as $code=>$value) {
             $mappedCode = $this->getMagento2Service()->getMappedCode('product', $code);
             switch ($mappedCode) {
                 case 'price':
