@@ -1060,9 +1060,10 @@ if (isset($storeDataByStoreId[0])) { $storeDataByStoreId = array(0=>$storeDataBy
                             }
                         }
 
+                        $logLevel = LogService::LEVEL_INFO;
                         $logMessage = 'Updated product '.$sku.' on store '.$storeId.' ';
+
                         if ($updateViaDbApi) {
-                            $logLevel = LogService::LEVEL_INFO;
                             $logCode = $this->getLogCode().'_wrupddb';
                             $logMessage .= 'successfully via DB api with '.implode(', ', array_keys($productData));
                         }else{
