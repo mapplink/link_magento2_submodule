@@ -52,6 +52,8 @@ class CreditmemoGateway extends AbstractGateway
      */
     public function retrieveEntities()
     {
+        return 0;
+
         $this->getServiceLocator()->get('logService')
             ->log(LogService::LEVEL_INFO,
                 $this->getLogCode().'_re_time',
@@ -234,7 +236,7 @@ class CreditmemoGateway extends AbstractGateway
                     }
                 }
 
-                $this->updateComments($creditmemo, $existingEntity, $this->_entityService);
+                $this->updateComments($creditmemo, $existingEntity);
             }
         }else{
             throw new NodeException('No valid API available for sync');
@@ -252,15 +254,16 @@ class CreditmemoGateway extends AbstractGateway
         }
         $this->getServiceLocator()->get('logService')
             ->log(LogService::LEVEL_INFO, $this->getLogCode().'_re_no', $message, $logData);
+
+        return count($results);
     }
 
     /**
      * Insert any new comment entries as entity comments
      * @param array $creditmemoData The full creditmemo data
      * @param \Entity\Entity $creditmemo The order entity to attach to
-     * @param EntityService $this->_entityService The EntityService
      */
-    protected function updateComments(array $creditmemoData, \Entity\Entity $creditmemo, EntityService $this->_entityService)
+    protected function updateComments(array $creditmemoData, \Entity\Entity $creditmemo)
     {
         $comments = $this->_entityService->loadEntityComments($creditmemo);
         $referenceIds = array();
@@ -369,6 +372,8 @@ class CreditmemoGateway extends AbstractGateway
      */
     public function writeUpdates(\Entity\Entity $entity, $attributes, $type = \Entity\Update::TYPE_UPDATE)
     {
+        return FALSE;
+
         switch ($type) {
             case \Entity\Update::TYPE_UPDATE:
                 // We don't update, ever
@@ -561,7 +566,8 @@ class CreditmemoGateway extends AbstractGateway
             default:
                 throw new GatewayException('Invalid update type '.$type);
         }
-        return;
+
+        return TRUE;
     }
 
     /**
@@ -571,6 +577,8 @@ class CreditmemoGateway extends AbstractGateway
      */
     public function writeAction(\Entity\Action $action)
     {
+        return FALSE;
+
         $entity = $action->getEntity();
         $localId = $this->_entityService->getLocalId($this->_node->getNodeId(), $entity);
 
