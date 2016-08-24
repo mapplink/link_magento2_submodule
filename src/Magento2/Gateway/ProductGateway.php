@@ -859,7 +859,8 @@ $storeIds = array(current($storeIds));
             $restData = array();
 
         }else{
-            $restData = $data;
+            $restData = array_replace(array('name'=>$entity->getData('name'), 'sku'=>$sku), $data);
+
             $customAttributes = array();
             $customAttributeCodes = array_merge(
                 $customAttributeCodes,
@@ -885,8 +886,6 @@ $storeIds = array(current($storeIds));
                     unset($restData[$code]);
                 }
             }
-
-            $restData['sku'] = $sku;
 
             foreach ($this->attributeSets as $setId=>$set) {
                 $setName = $set['attribute_set_name'];
