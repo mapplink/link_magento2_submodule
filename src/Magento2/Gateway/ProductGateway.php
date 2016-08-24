@@ -817,7 +817,7 @@ $storeIds = array(current($storeIds));
 
         $data = array();
 
-        foreach ($stockitem->getFullArrayCopy() as $code=>$value) {
+        foreach ($stockitem->getArrayCopy() as $code=>$value) {
             switch ($code) {
                 case 'available':
                     $data['qty'] = $value;
