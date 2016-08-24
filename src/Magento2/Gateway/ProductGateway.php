@@ -1067,6 +1067,9 @@ if (isset($storeDataByStoreId[0])) { $storeDataByStoreId = array(0=>$storeDataBy
                             $logCode = $this->getLogCode().'_wrupddb';
                             $logMessage .= 'successfully via DB api with '.implode(', ', array_keys($productData));
                         }else{
+                            $logLevel = LogService::LEVEL_INFO;
+                            $logCode = $this->getLogCode().'_wrupdrest';
+
                             try{
                                 foreach ($productData as $attributeCode=>$attributeValue) {
                                     if (!in_array($attributeCode, $attributeCodes)) {
@@ -1095,12 +1098,10 @@ if (isset($storeDataByStoreId[0])) { $storeDataByStoreId = array(0=>$storeDataBy
                             }catch(\Exception $exception) {
                                 $restResult = FALSE;
                                 $type = Update::TYPE_CREATE;
-
-                                $logLevel = ($restResult ? LogService::LEVEL_INFO : LogService::LEVEL_ERROR);
-                                $logCode = $this->getLogCode().'_wrupdrest';
                             }
 
                             if (!$restResult) {
+                                $logLevel = LogService::LEVEL_ERROR;
                                 $logMessage = $api.' update failed. Removed local id '.$localId
                                     .' from node '.$nodeId.'. '.$logMessage;
                                 if (isset($exception)) {
