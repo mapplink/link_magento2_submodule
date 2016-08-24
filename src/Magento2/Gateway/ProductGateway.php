@@ -888,6 +888,19 @@ $storeIds = array(current($storeIds));
 
             $restData['sku'] = $sku;
 
+            foreach ($this->attributeSets as $setId=>$set) {
+                $setName = $set['attribute_set_name'];
+                $productClass = $entity->getData('product_class', 'default');
+
+                $isNameMatching = strtolower($setName) == strtolower($productClass);
+                $hasProductType = $set['entity_type_id'] == 4;
+
+                if ($isNameMatching && $hasProductType) {
+                    $restData['attribute_set_id'] = $setId;
+                    break;
+                }
+            }
+
             if (!isset($customAttributes['special_price'])) {
                 unset($customAttributes['special_from_date'], $customAttributes['special_to_date']);
             }
@@ -1121,20 +1134,6 @@ if (isset($storeDataByStoreId[0])) { $storeDataByStoreId = array(0=>$storeDataBy
                     }
 
                     if ($type == Update::TYPE_CREATE) {
-
-                        foreach ($this->attributeSets as $setId=>$set) {
-                            $setName = $set['attribute_set_name'];
-                            $productClass = $product->getData('product_class', 'default');
-
-                            $isNameMatching = strtolower($setName) == strtolower($productClass);
-                            $hasProductType = $set['entity_type_id'] == 4;
-
-                            if ($isNameMatching && $hasProductType) {
-                                $restData['attribute_set_id'] = $setId;
-                                break;
-                            }
-                        }
-
                         if (!isset($restData['attribute_set_id'])) {
                             $message = 'Invalid product class '.$product->getData('product_class', 'default');
                             throw new \Magelink\Exception\SyncException($message);
