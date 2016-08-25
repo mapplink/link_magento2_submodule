@@ -154,9 +154,26 @@ class OrderGateway extends AbstractGateway
         if (!$retrieve && count($limits) == 2) {
             list($from, $to) = $limits;
             if (intval($orderData['increment_id']) > $from || intval($orderData['increment_id']) < $to) {
-                $isOrderPending = self::hasOrderStatePending($orderData['status']);
-                $isOrderProcessing = self::hasOrderStateProcessing($orderData['status']);
-                $retrieve = $isOrderPending || $isOrderProcessing;
+                if (!isset($orderData['status'])) {
+                    $message = 'Magento status is missing on order rest data.';
+                    if (isset($orderData['state'])) {
+                        $message .= ' Used order state instead.';
+                        $orderData['status'] = $orderData['state'];
+                    }
+                }
+
+                if (isset($orderData['status'])) {
+                    $message = '';
+                    $isOrderPending = self::hasOrderStatePending($orderData['status']);
+                    $isOrderProcessing = self::hasOrderStateProcessing($orderData['status']);
+                    $retrieve = $isOrderPending || $isOrderProcessing;
+                }
+
+                if (strlen($message) > 0) {
+                    $this->getServiceLocator()->get('logService')
+                        ->log(LogService::LEVEL_ERROR, $this->getLogCode().'_isrtr_err', $message,
+                            array('order data'=>$orderData));
+                }
             }
         }
 
