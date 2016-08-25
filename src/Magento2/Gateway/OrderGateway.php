@@ -577,6 +577,9 @@ class OrderGateway extends AbstractGateway
                 throw new GatewayException('Needs update: '.$exception->getMessage(), 0, $exception);
                 $success = FALSE;
             }
+        }else{
+            /** @var Order $order */
+            $order = $existingEntity;
         }
 
         $logData = array('order'=>$uniqueId, 'orderData'=>$orderData);
