@@ -49,7 +49,7 @@ class Magento2ConfigService extends ApplicationConfigService
         $storeLimits = $this->getConfigData('store_limits');
         if (isset($storeLimits['pending_processing'])
           && is_array($storeLimits['pending_processing']) && count($storeLimits['pending_processing'] == 2)) {
-            $pendingProcessingLimits = $storeLimits;
+            $pendingProcessingLimits = $storeLimits['pending_processing'];
         }else{
             $pendingProcessingLimits = array();
         }
