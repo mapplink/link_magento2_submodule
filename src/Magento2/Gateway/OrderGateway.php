@@ -1049,12 +1049,13 @@ class OrderGateway extends AbstractGateway
     protected function createAddresses(array $orderData)
     {
         $data = array();
-        if(isset($orderData['shipping_address'])){
+        if (isset($orderData['shipping_address'])) {
             $data['shipping_address'] = $this->createAddressEntity($orderData['shipping_address'], $orderData, 'shipping');
         }
-        if(isset($orderData['billing_address'])){
+        if (isset($orderData['billing_address'])) {
             $data['billing_address'] = $this->createAddressEntity($orderData['billing_address'], $orderData, 'billing');
         }
+
         return $data;
     }
 
@@ -1069,47 +1070,57 @@ class OrderGateway extends AbstractGateway
      */
     protected function createAddressEntity(array $addressData, array $orderData, $type)
     {
-        if (!array_key_exists('address_id', $addressData) || $addressData['address_id'] == NULL) {
-            return NULL;
-        }
+        $orderUniqueId = $orderData['increment_id'];
+        $uniqueId = 'order-'.$orderUniqueId.'-'.$type;
 
-        $uniqueId = 'order-'.$orderData['increment_id'].'-'.$type;
-
-        $entity = $this->_entityService->loadEntity(
-            $this->_node->getNodeId(), 'address', ($this->_node->isMultiStore() ? $orderData['store_id'] : 0), $uniqueId
-        );
+        if (!array_key_exists('entity_id', $addressData) || $addressData['entity_id'] == NULL) {
+            $this->getServiceLocator()->get('logService')
+                ->log(LogService::LEVEL_ERROR, $this->getLogCode().'_adr_fail',
+                    ucfirst(strtolower($type)).' address could not be created.',
+                    array('order unique'=>$orderUniqueId, 'address data'=>$addressData)
+                );
+            $entity = NULL;
+        }else{
+            $entity = $this->_entityService->loadEntity(
+                $this->_node->getNodeId(),
+                'address',
+                ($this->_node->isMultiStore() ? $orderData['store_id'] : 0),
+                $uniqueId
+            );
 /*
-        // DISABLED: Generally doesn't work.
-        if (!$entity) {
-            $entity = $this->_entityService->loadEntityLocal(
-                $this->_node->getNodeId(),
-                'address',
-                ($this->_node->isMultiStore() ? $orderData['store_id'] : 0),
-                $addressData['address_id']
-            );
-        }
+            // DISABLED: Generally doesn't work.
+            if (!$entity) {
+                $entity = $this->_entityService->loadEntityLocal(
+                    $this->_node->getNodeId(),
+                    'address',
+                    ($this->_node->isMultiStore() ? $orderData['store_id'] : 0),
+                    $addressData['address_id']
+                );
+            }
 */
-        if (!$entity) {
-            $data = array(
-                'first_name'=>(isset($addressData['firstname']) ? $addressData['firstname'] : null),
-                'last_name'=>(isset($addressData['lastname']) ? $addressData['lastname'] : null),
-                'street'=>(isset($addressData['street']) ? $addressData['street'] : null),
-                'city'=>(isset($addressData['city']) ? $addressData['city'] : null),
-                'region'=>(isset($addressData['region']) ? $addressData['region'] : null),
-                'postcode'=>(isset($addressData['postcode']) ? $addressData['postcode'] : null),
-                'country_code'=>(isset($addressData['country_id']) ? $addressData['country_id'] : null),
-                'telephone'=>(isset($addressData['telephone']) ? $addressData['telephone'] : null),
-                'company'=>(isset($addressData['company']) ? $addressData['company'] : null)
-            );
+            if (!$entity) {
+                $data = array(
+                    'first_name'=>(isset($addressData['firstname']) ? $addressData['firstname'] : null),
+                    'last_name'=>(isset($addressData['lastname']) ? $addressData['lastname'] : null),
+                    'street'=>(isset($addressData['street']) ? $addressData['street'] : null),
+                    'city'=>(isset($addressData['city']) ? $addressData['city'] : null),
+                    'region'=>(isset($addressData['region']) ? $addressData['region'] : null),
+                    'postcode'=>(isset($addressData['postcode']) ? $addressData['postcode'] : null),
+                    'country_code'=>(isset($addressData['country_id']) ? $addressData['country_id'] : null),
+                    'telephone'=>(isset($addressData['telephone']) ? $addressData['telephone'] : null),
+                    'company'=>(isset($addressData['company']) ? $addressData['company'] : null)
+                );
 
-            $entity = $this->_entityService->createEntity(
-                $this->_node->getNodeId(),
-                'address',
-                ($this->_node->isMultiStore() ? $orderData['store_id'] : 0),
-                $uniqueId,
-                $data
-            );
-            $this->_entityService->linkEntity($this->_node->getNodeId(), $entity, $addressData['address_id']);
+                $entity = $this->_entityService->createEntity(
+                    $this->_node->getNodeId(),
+                    'address',
+                    ($this->_node->isMultiStore() ? $orderData['store_id'] : 0),
+                    $uniqueId,
+                    $data
+                );
+
+                $this->_entityService->linkEntity($this->_node->getNodeId(), $entity, $addressData['address_id']);
+            }
         }
 
         return $entity;
