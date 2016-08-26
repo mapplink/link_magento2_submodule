@@ -1054,6 +1054,9 @@ class OrderGateway extends AbstractGateway
         }
         if (isset($orderData['billing_address'])) {
             $data['billing_address'] = $this->createAddressEntity($orderData['billing_address'], $orderData, 'billing');
+            if (!isset($data['shipping_address'])) {
+                $data['shipping_address'] = $data['billing_address'];
+            }
         }
 
         return $data;
@@ -1072,8 +1075,13 @@ class OrderGateway extends AbstractGateway
     {
         $orderUniqueId = $orderData['increment_id'];
         $uniqueId = 'order-'.$orderUniqueId.'-'.$type;
+        if (array_key_exists('entity_id', $addressData) && intval($addressData['entity_id']) == $addressData['entity_id']) {
+            $localId = $addressData['entity_id'];
+        }else {
+            $localId = NULL;
+        }
 
-        if (!array_key_exists('entity_id', $addressData) || $addressData['entity_id'] == NULL) {
+        if (is_null($localId)) {
             $this->getServiceLocator()->get('logService')
                 ->log(LogService::LEVEL_ERROR, $this->getLogCode().'_adr_fail',
                     ucfirst(strtolower($type)).' address could not be created.',
@@ -1119,7 +1127,7 @@ class OrderGateway extends AbstractGateway
                     $data
                 );
 
-                $this->_entityService->linkEntity($this->_node->getNodeId(), $entity, $addressData['address_id']);
+                $this->_entityService->linkEntity($this->_node->getNodeId(), $entity, $localId);
             }
         }
 
