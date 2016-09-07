@@ -917,6 +917,8 @@ class OrderGateway extends AbstractGateway
             }
 
             $this->getServiceLocator()->get('logService')->log($logLevel, $logCode, $logMessage, $logData);
+        }else{
+            $forcedOrders = 0;
         }
 
         return $forcedOrders;
