@@ -293,16 +293,19 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
         $this->requestType = strtoupper($httpMethod);
         $setRequestDataMethod = 'set'.ucfirst(strtolower($httpMethod)).'fields';
 
-        $headers = new Headers();
-        $headers->addHeaders([
+        $uri = $this->getUrl($callType);
+        $headersArray = array(
             'Authorization' => $this->authorisation,
             'Accept'=>'application/json',
             'Content-Type'=>'application/json'
-        ]);
+        );
+
+        $headers = new Headers();
+        $headers->addHeaders($headersArray);
 
         $this->request = new Request();
         $this->request->setHeaders($headers);
-        $this->request->setUri($this->getUrl($callType));
+        $this->request->setUri($uri);
         $this->request->setMethod($this->requestType);
 
         $this->client = new Client();
@@ -319,11 +322,10 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
         if (is_array($response) && array_key_exists('items', $response)) {
             $response = $response['items'];
         }elseif (isset($response['message'])) {
-            $this->getServiceLocator()->get('logService')
-                ->log(LogService::LEVEL_ERROR, $this->getLogCodePrefix().'_call_err',
-                    'REST ERROR: '.$response['message'],
-                    array('parameters'=>$parameters, 'response'=>$response)
-            );
+            $logData = array('uri'=>$uri, 'headers'=>$headersArray, 'method'=>$this->requestType,
+                'options'=>$this->clientOptions, 'parameters'=>$parameters, 'response'=>$response);
+            $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_ERROR,
+                $this->getLogCodePrefix().'_call_err', 'REST ERROR: '.$response['message'], $logData);
             throw new GatewayException('REST ERROR: '.$response['message']);
         }
 
