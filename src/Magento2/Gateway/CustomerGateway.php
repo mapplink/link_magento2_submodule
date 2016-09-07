@@ -247,16 +247,6 @@ class CustomerGateway extends AbstractGateway
         $this->_nodeService
             ->setTimestamp($this->_nodeEntity->getNodeId(), 'customer', 'retrieve', $this->getNewRetrieveTimestamp());
 
-        $seconds = ceil($this->getAdjustedTimestamp() - $this->getNewRetrieveTimestamp());
-        $message = 'Retrieved '.count($results).' customers in '.$seconds.'s up to '
-            .strftime('%H:%M:%S, %d/%m', $this->retrieveTimestamp).'.';
-        $logData = array('type'=>'customer', 'amount'=>count($results), 'period [s]'=>$seconds);
-        if (count($results) > 0) {
-            $logData['per entity [s]'] = round($seconds / count($results), 3);
-        }
-        $this->getServiceLocator()->get('logService')
-            ->log(LogService::LEVEL_INFO, $this->getLogCode().'_re_no', $message, $logData);
-
         return count($results);
     }
 

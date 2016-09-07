@@ -463,14 +463,7 @@ $storeIds = array(current($storeIds));
         $this->_nodeService
             ->setTimestamp($this->_nodeEntity->getNodeId(), 'product', 'retrieve', $this->getNewRetrieveTimestamp());
 
-        $seconds = ceil($this->getAdjustedTimestamp() - $this->getNewRetrieveTimestamp());
-        $message = 'Retrieved '.count($results).' products in '.$seconds.'s up to '
-            .strftime('%H:%M:%S, %d/%m', $this->retrieveTimestamp).' via '.$api.' api.';
-        $logData = array('type'=>'product', 'amount'=>count($results), 'period [s]'=>$seconds);
-        if (count($results) > 0) {
-            $logData['per entity [s]'] = round($seconds / count($results), 3);
-        }
-        $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_INFO, $this->getLogCode().'_re_no', $message, $logData);
+        return count($results);
     }
 
     /**

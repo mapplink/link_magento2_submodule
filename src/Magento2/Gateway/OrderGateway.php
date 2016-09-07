@@ -735,7 +735,7 @@ class OrderGateway extends AbstractGateway
 
         $seconds = ceil($this->getAdjustedTimestamp() - $this->getNewRetrieveTimestamp());
         $message = 'Retrieved '.count($orders).' orders in '.$seconds.'s up to '
-            .strftime('%H:%M:%S, %d/%m', $this->retrieveTimestamp).'.';
+            .strftime('%H:%M:%S, %d/%m', $this->retrieveTimestamp).'. Forced synchronisation comes next.';
         $logData = array('type'=>'order', 'amount'=>count($orders), 'period [s]'=>$seconds);
         if (count($orders) > 0) {
             $logData['per entity [s]'] = round($seconds / count($orders), 3);
@@ -744,7 +744,7 @@ class OrderGateway extends AbstractGateway
             ->log(LogService::LEVEL_INFO, $this->getLogCode().'_re_no', $message, $logData);
 
         try{
-            $this->forceSynchronisation();
+            $storedOrders += $this->forceSynchronisation();
         }catch(\Exception $exception) {
             // store as sync issue
            throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
@@ -858,7 +858,6 @@ class OrderGateway extends AbstractGateway
      */
     public function forceSynchronisation()
     {
-        $success = TRUE;
         $start = microtime(TRUE);
 
         if (!$this->areOrdersInSync()) {
@@ -904,7 +903,6 @@ class OrderGateway extends AbstractGateway
             }
 
             if (count($this->notRetrievedOrderIncrementIds) > 0) {
-                $success = FALSE;
                 $orderOutOfSyncList = implode(', ', $this->notRetrievedOrderIncrementIds);
 
                 $logLevel = LogService::LEVEL_ERROR;
@@ -921,7 +919,7 @@ class OrderGateway extends AbstractGateway
             $this->getServiceLocator()->get('logService')->log($logLevel, $logCode, $logMessage, $logData);
         }
 
-        return $success;
+        return $forcedOrders;
     }
 
     /**
