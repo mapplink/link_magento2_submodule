@@ -880,6 +880,14 @@ $storeIds = array(current($storeIds));
                 }
             }
 
+            if (!isset($data['type']) || $data['type'] == 'simple') {
+                $urlKey = $data['name']
+                    .(isset($data['color']) ? '-'.$data['color'] : '')
+                    .(isset($data['size']) ? '-'.$data['size'] : '')
+                    .(!isset($data['color']) && !isset($data['size']) ? '-'.$sku : '');
+                $customAttributes['url_key'] = array('attribute_code'=>'url_key', 'value'=>$urlKey);
+            }
+
             foreach ($this->attributeSets as $setId=>$set) {
                 $setName = $set['attribute_set_name'];
                 $productClass = $entity->getData('product_class', 'default');
