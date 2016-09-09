@@ -1210,7 +1210,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
 //                            $websiteId = $logData['website id'] = $websiteIds[$storeId];
 foreach ($websiteIds as $websiteId) {
                             $restResponse = $this->restV1->put(
-                                'products/'.$sku.'websites',
+                                'products/'.$sku.'/websites',
                                 array('productWebsiteLink'=>array('sku'=>$sku, 'websiteId'=>$websiteId))
                             );
 }
