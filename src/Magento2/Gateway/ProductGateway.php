@@ -881,10 +881,9 @@ $storeIds = array(current($storeIds));
             }
 
             if (!isset($data['type']) || $data['type'] == 'simple') {
-                $urlKey = $data['name']
+                $urlKey = $data['name'].'-'.$sku
                     .(isset($data['color']) ? '-'.self::getColour($data['color']) : '')
-                    .(isset($data['size']) ? '-'.self::getSize($data['size']) : '')
-                    .(!isset($data['color']) && !isset($data['size']) ? '-'.$sku : '');
+                    .(isset($data['size']) ? '-'.self::getSize($data['size']) : '');
                 $customAttributes['url_key'] = array('attribute_code'=>'url_key', 'value'=>$urlKey);
             }
 
