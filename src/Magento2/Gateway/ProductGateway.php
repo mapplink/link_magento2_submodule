@@ -1208,11 +1208,13 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
 
 // TECHNICAL DEBT // ToDo: Remove hardcoding of all products being enabled on all websites
 //                            $websiteId = $logData['website id'] = $websiteIds[$storeId];
-foreach ($websiteIds as $websiteId) {
-                            $restResponse = $this->restV1->put(
-                                'products/'.$sku.'/websites',
-                                array('productWebsiteLink'=>array('sku'=>$sku, 'websiteId'=>$websiteId))
-                            );
+foreach ($websiteIds as $websiteId) { $logData['website ids'] = implode(', ', $websiteIds);
+                            if ($websiteId > 0) {
+                                $restResponse = $this->restV1->put(
+                                    'products/'.$sku.'/websites',
+                                    array('productWebsiteLink'=>array('sku'=>$sku, 'websiteId'=>$websiteId))
+                                );
+                            }
 }
 
                             $logData['rest data'] = $restData;
