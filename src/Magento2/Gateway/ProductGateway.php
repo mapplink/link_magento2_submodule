@@ -1206,17 +1206,6 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
 
                             $this->_entityService->linkEntity($nodeId, $product, $localId);
 
-// TECHNICAL DEBT // ToDo: Remove hardcoding of all products being enabled on all websites
-//                            $websiteId = $logData['website id'] = $websiteIds[$storeId];
-foreach ($websiteIds as $websiteId) { $logData['website ids'] = implode(', ', $websiteIds);
-                            if ($websiteId > 0) {
-                                $restResponse = $this->restV1->put(
-                                    'products/'.$sku.'/websites',
-                                    array('productWebsiteLink'=>array('sku'=>$sku, 'websiteId'=>$websiteId))
-                                );
-                            }
-}
-
                             $logData['rest data'] = $restData;
                             $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_INFO,
                                 $this->getLogCode().'_wr_loc_id',
@@ -1228,7 +1217,25 @@ foreach ($websiteIds as $websiteId) { $logData['website ids'] = implode(', ', $w
                             throw new MagelinkException($message, 0, $restFault);
                         }
                     }
+
+                    if ($restResult) {
+                        $logData = array('sku'=>$sku);
+// TECHNICAL DEBT // ToDo: Remove hardcoding of all products being enabled on all websites
+//                        $websiteId = $logData['website id'] = $websiteIds[$storeId];
+foreach ($websiteIds as $websiteId) { $logData['website ids'] = implode(', ', $websiteIds);
+                        if ($websiteId > 0) {
+                            $restResponse = $this->restV1->put(
+                                'products/'.$sku.'/websites',
+                                array('productWebsiteLink' => array('sku' => $sku, 'websiteId' => $websiteId))
+                            );
+                        }
+}
+                        $this->getServiceLocator()->get('logService')
+                            ->log(LogService::LEVEL_INFO, $this->getLogCode().'_wr_prows',
+                                'Added product with '.$sku.' to website '.$websiteId.' on node '.$nodeId.'.', $logData);
+                    }
                 }
+
                 unset($dataPerStore);
             }
         }
