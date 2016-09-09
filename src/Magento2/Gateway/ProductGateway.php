@@ -973,12 +973,11 @@ $storeIds = array(current($storeIds));
             $data = $this->getProductWriteData($product, $type);
             $stockitemData = $this->getStockitemWriteData($stockitem);
 
+            $websiteIds = array();
             $storeDataByStoreId = $this->_node->getStoreViews();
-// TECHNICAL DEBT // ToDo: Hardcoded to default store
-if (isset($storeDataByStoreId[0])) { $storeDataByStoreId = array(0=>$storeDataByStoreId[0]); }else{ $storeDataByStoreId = array(0=>current($storeDataByStoreId)); }
-
+// TECHNICAL DEBT // ToDo: Remove hardcoding to default store
+foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = $storeData['website_id']; } $storeDataByStoreId = array(0=>(isset($storeDataByStoreId[0]) ? $storeDataByStoreId[0] : current($storeDataByStoreId)));
             if (count($storeDataByStoreId) > 0 && $type != Update::TYPE_DELETE) {
-                $websiteIds = array();
                 $dataPerStore = array();
 
                 foreach ($storeDataByStoreId as $storeId=>$storeData) {
@@ -998,7 +997,7 @@ if (isset($storeDataByStoreId[0])) { $storeDataByStoreId = array(0=>$storeDataBy
 
                     $isEnabled = isset($dataToCheck['price']);
                     if ($isEnabled) {
-                        $websiteIds[] = $storeData['website_id'];
+                        $websiteIds[$storeId] = $storeData['website_id'];
                         $logCode = $this->getLogCode().'_wrupd_wen';
                         $logMessage = 'enabled';
                     }else{
@@ -1072,6 +1071,7 @@ if (isset($storeDataByStoreId[0])) { $storeDataByStoreId = array(0=>$storeDataBy
                             }
                         }
 
+                        $type = Update::TYPE_UPDATE;
                         $logLevel = LogService::LEVEL_INFO;
                         $logMessage = 'Updated product '.$sku.' on store '.$storeId.' ';
 
@@ -1103,7 +1103,6 @@ if (isset($storeDataByStoreId[0])) { $storeDataByStoreId = array(0=>$storeDataBy
                                     $this->restV1->put('products/'.$sku, $putData));
 
                                 if (is_null($localId) && isset($restResult['update']['id'])) {
-                                    $type = Update::TYPE_UPDATE;
                                     $localId = $restResult['update']['id'];
                                     $this->_entityService->linkEntity($nodeId, $product, $localId);
                                 }
@@ -1206,6 +1205,15 @@ if (isset($storeDataByStoreId[0])) { $storeDataByStoreId = array(0=>$storeDataBy
                             }
 
                             $this->_entityService->linkEntity($nodeId, $product, $localId);
+
+// TECHNICAL DEBT // ToDo: Remove hardcoding of all products being enabled on all websites
+//                            $websiteId = $logData['website id'] = $websiteIds[$storeId];
+foreach ($websiteIds as $websiteId) {
+                            $restResponse = $this->restV1->put(
+                                'products/'.$sku.'websites',
+                                array('productWebsiteLink'=>array('sku'=>$sku, 'websiteId'=>$websiteId))
+                            );
+}
 
                             $logData['rest data'] = $restData;
                             $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_INFO,
