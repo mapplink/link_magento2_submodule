@@ -881,7 +881,7 @@ $storeIds = array(current($storeIds));
             }
 
             if (!isset($data['type']) || $data['type'] == 'simple') {
-                $urlKey = $data['name'].'-'.$sku
+                $urlKey = $restData['name'].'-'.$sku
                     .(isset($data['color']) ? '-'.self::getColour($data['color']) : '')
                     .(isset($data['size']) ? '-'.self::getSize($data['size']) : '');
                 $customAttributes['url_key'] = array('attribute_code'=>'url_key', 'value'=>$urlKey);
