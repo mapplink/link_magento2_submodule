@@ -1221,18 +1221,22 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                     if ($restResult) {
                         $logData = array('sku'=>$sku);
 // TECHNICAL DEBT // ToDo: Remove hardcoding of all products being enabled on all websites
-//                        $websiteId = $logData['website id'] = $websiteIds[$storeId];
-foreach ($websiteIds as $websiteId) { $logData['website ids'] = implode(', ', $websiteIds);
+//                        $websiteId = $websiteIds[$storeId];
+foreach ($websiteIds as $websiteId) {
                         if ($websiteId > 0) {
                             $restResponse = $this->restV1->put(
                                 'products/'.$sku.'/websites',
-                                array('productWebsiteLink' => array('sku' => $sku, 'websiteId' => $websiteId))
+                                array('productWebsiteLink'=>array('sku'=>$sku, 'websiteId'=>$websiteId))
+                            );
+
+                            $logData['website id'] = $websiteIds[$storeId];
+                            $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_INFO,
+                                $this->getLogCode().'_wr_prows',
+                                'Added product with '.$sku.' to website '.$websiteId.' on node '.$nodeId.'.',
+                                array_replace_recursive($logData, array('website id' => $websiteId))
                             );
                         }
 }
-                        $this->getServiceLocator()->get('logService')
-                            ->log(LogService::LEVEL_INFO, $this->getLogCode().'_wr_prows',
-                                'Added product with '.$sku.' to website '.$websiteId.' on node '.$nodeId.'.', $logData);
                     }
                 }
 
