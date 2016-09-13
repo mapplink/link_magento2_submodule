@@ -775,6 +775,7 @@ $storeIds = array(current($storeIds));
                 case 'size':
                     $data['size'] = self::getSizeId($value);
                     break;
+                case 'configurable_sku':
                 // TECHNICAL DEBT // ToDo (maybe) : Add logic for this custom attributes
                 case 'brand':
                 case 'product_class':
@@ -838,21 +839,23 @@ $storeIds = array(current($storeIds));
 
     /**
      * Restructure data for rest call and return this array.
-     * @param \Entity\Entity $entity
+     * @param Product $product
      * @param array $data
      * @param array $customAttributeCodes
      * @return array $restData
      * @throws \Magelink\Exception\MagelinkException
      */
-    protected function getUpdateDataForRestCall(\Entity\Entity $entity, array $data, array $customAttributeCodes)
+    protected function getDataForRestCall(Product $product, array $data, array $customAttributeCodes)
     {
-        $sku = $entity->getUniqueId();
+        $nodeId = $this->_node->getNodeId();
+        $sku = $product->getUniqueId();
+
         if (!isset($sku)) {
             throw new GatewayException('SKU is essential for a synchronisation but missing.');
             $restData = array();
 
         }else{
-            $restData = array_replace(array('name'=>$entity->getData('name'), 'sku'=>$sku), $data);
+            $restData = array_replace(array('name'=>$product->getData('name'), 'sku'=>$sku), $data);
 
             $customAttributes = array();
             $customAttributeCodes = array_merge(
@@ -871,8 +874,8 @@ $storeIds = array(current($storeIds));
                     $message = 'This gateway doesn\'t support multi data custom attributes yet: '.$code.'.';
                     $this->getServiceLocator()->get('logService')
                         ->log(LogService::LEVEL_ERROR, $this->getLogCode().'_crat_err', $message,
-                            array('type'=>$entity->getTypeStr(), 'code'=>$code, 'value'=>$value),
-                            array('entity'=>$entity, 'custom attributes'=>$customAttributeCodes)
+                            array('type'=>$product->getTypeStr(), 'code'=>$code, 'value'=>$value),
+                            array('entity'=>$product, 'custom attributes'=>$customAttributeCodes)
                         );
                 }elseif ($isCustomAttribute) {
                     $customAttributes[$code] = array('attribute_code'=>$code, 'value'=>$value);
@@ -889,7 +892,7 @@ $storeIds = array(current($storeIds));
 
             foreach ($this->attributeSets as $setId=>$set) {
                 $setName = $set['attribute_set_name'];
-                $productClass = $entity->getData('product_class', 'default');
+                $productClass = $product->getData('product_class', 'default');
 
                 $isNameMatching = strtolower($setName) == strtolower($productClass);
                 $hasProductType = $set['entity_type_id'] == 4;
@@ -906,6 +909,15 @@ $storeIds = array(current($storeIds));
 
             if (count($customAttributes) > 0) {
                 $restData['custom_attributes'] = array_values($customAttributes);
+            }
+
+
+            $stockitem = $this->_entityService->loadEntity($nodeId, 'stockitem', 0, $sku);
+            $restData['extension_attributes']['stock_item'] = $this->getStockitemWriteData($stockitem);
+
+            if ($product->isTypeConfigurable()) {
+                $restData['extension_attributes']['configurable_product_links'] =
+                    $product->getConfigurableProductLinks($nodeId);
             }
 
             unset($restData['website_ids']);
@@ -971,7 +983,6 @@ $storeIds = array(current($storeIds));
         }else{
             $localId = $this->_entityService->getLocalId($this->_node->getNodeId(), $product);
             $data = $this->getProductWriteData($product, $type);
-            $stockitemData = $this->getStockitemWriteData($stockitem);
 
             $websiteIds = array();
             $storeDataByStoreId = $this->_node->getStoreViews();
@@ -1031,8 +1042,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                         unset($productData['special_to_date']);
                     }
 
-                    $restData = $this->getUpdateDataForRestCall($product, $productData, $customAttributes);
-                    $restData['extension_attributes']['stock_item'] = $stockitemData;
+                    $restData = $this->getDataForRestCall($product, $productData, $customAttributes);
 
                     $logData = array(
                         'type'=>$entity->getData('type'),
@@ -1088,8 +1098,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                                         unset($productData[$attributeCode]);
                                     }
                                 }
-                                $updateRestData = $this->getUpdateDataForRestCall($product, $productData, $customAttributes);
-                                $updateRestData['extension_attributes']['stock_item'] = $stockitemData;
+                                $updateRestData = $this->getDataForRestCall($product, $productData, $customAttributes);
 
                                 if (count($updateRestData) == 0) {
                                     // ToDo: Check if products exists remotely
