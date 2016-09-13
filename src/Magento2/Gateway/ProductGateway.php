@@ -1087,11 +1087,11 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                         $logMessage = 'Updated product '.$sku.' on store '.$storeId.' ';
 
                         if ($updateViaDbApi) {
-                            $logCode = $this->getLogCode().'_wrupddb';
+                            $logCode = $this->getLogCode().'_wr_upddb';
                             $logMessage .= 'successfully via DB api with '.implode(', ', array_keys($productData));
                         }else{
                             $logLevel = LogService::LEVEL_INFO;
-                            $logCode = $this->getLogCode().'_wrupdrest';
+                            $logCode = $this->getLogCode().'_wr_updrest';
 
                             try{
                                 foreach ($productData as $attributeCode=>$attributeValue) {
@@ -1147,6 +1147,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                             throw new \Magelink\Exception\SyncException($message);
                         }
 
+                        $logCode = $this->getLogCode().'_wr_crrest';
                         $message = 'Creating product (ReST) : '.$sku.' with '.implode(', ', array_keys($productData));
                         $logData['set'] = $restData['attribute_set_id'];
                         $this->getServiceLocator()->get('logService')
