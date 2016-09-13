@@ -148,11 +148,6 @@ $moduleConfig = array (
             ),
         )
     ),
-    'controllers'=>array(
-        'invokables'=>array(
-            'Magento2\Controller\Console'=>'Magento2\Controller\Console',
-        ),
-    ),
     'service_manager'=>array(
         'invokables'=>array(
             'magento2_restV1'=>'Magento2\Api\RestV1',
@@ -164,21 +159,6 @@ $moduleConfig = array (
         'shared'=>array(
             'magento2_restV1'=>FALSE,
             'magento2_db'=>FALSE
-        )
-    ),
-    'console'=>array(
-        'router'=>array(
-            'routes'=>array(
-                'magento2-console'=>array(
-                    'options'=>array(
-                        'route'=>'magento2 <task> <id> [<params>]',
-                        'defaults'=>array(
-                            'controller'=>'Magento2\Controller\Console',
-                            'action'=>'run'
-                        )
-                    )
-                )
-            )
         )
     )
 );
