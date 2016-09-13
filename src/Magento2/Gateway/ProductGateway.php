@@ -790,7 +790,7 @@ $storeIds = array(current($storeIds));
                     $this->getServiceLocator()->get('logService')
                         ->log(LogService::LEVEL_WARN,
                             $this->getLogCode().'_wr_invdata',
-                            'Unsupported attribute for update of '.$product->getUniqueId().': '.$code,
+                            'Unsupported attribute for product update of '.$product->getUniqueId().': '.$code,
                             array('type'=>'product', 'attribute'=>$code),
                             array('entity'=>$product)
                         );
@@ -817,6 +817,7 @@ $storeIds = array(current($storeIds));
                     $data['qty'] = $value;
                     $data['is_in_stock'] = ($value > 0 ? 1 : 0);
                     break;
+                case 'qty_pre_transit':
                 case 'qty_soh':
                 case 'total':
                     // Ignore attributes
@@ -826,7 +827,7 @@ $storeIds = array(current($storeIds));
                         ->log(
                             LogService::LEVEL_WARN,
                             $this->getLogCode().'_wr_invdata',
-                            'Unsupported attribute for update of '.$stockitem->getUniqueId().': '.$code,
+                            'Unsupported attribute for stockitem update of '.$stockitem->getUniqueId().': '.$code,
                             array('type'=>'stockitem', 'attribute'=>$code),
                             array('entity'=>$stockitem)
                         );
