@@ -232,8 +232,8 @@ return 0;
         $this->getServiceLocator()->get('logService')
             ->log(LogService::LEVEL_INFO,
                 $this->getLogCode().'_re_time',
-                'Retrieving products updated since '.$this->lastRetrieveDate,
-               array('type'=>'product', 'timestamp'=>$this->lastRetrieveDate)
+                'Retrieving products updated since '.$this->getLastRetrieveDate(),
+               array('type'=>'product', 'timestamp'=>$this->getLastRetrieveDate())
             );
 
         $additional = $this->_node->getConfig('product_attributes');
@@ -247,7 +247,7 @@ return 0;
         if ($this->db) {
             $api = 'db';
             try {
-                $updatedProducts = $results = $this->db->getChangedEntityIds('catalog_product', $this->lastRetrieveDate);
+                $updatedProducts = $results = $this->db->getChangedEntityIds('catalog_product', $this->getLastRetrieveDate());
             }catch (\Exception $exception) {
                 throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
             }
@@ -400,7 +400,7 @@ $storeIds = array(current($storeIds));
                 $results = $this->restV1->get('product', array(
                     'filter'=>array(array(
                         'field'=>'updated_at',
-                        'value'=>$this->lastRetrieveDate,
+                        'value'=>$this->$this->getLastRetrieveDate(),
                         'condition_type'=>'gt'
                     ))
                 ));

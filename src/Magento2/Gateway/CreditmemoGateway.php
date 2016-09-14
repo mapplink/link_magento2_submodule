@@ -57,8 +57,8 @@ class CreditmemoGateway extends AbstractGateway
         $this->getServiceLocator()->get('logService')
             ->log(LogService::LEVEL_INFO,
                 $this->getLogCode().'_re_time',
-                'Retrieving creditmemos updated since '.$this->lastRetrieveDate,
-                array('type'=>'creditmemo', 'timestamp'=>$this->lastRetrieveDate)
+                'Retrieving creditmemos updated since '.$this->getLastRetrieveDate(),
+                array('type'=>'creditmemo', 'timestamp'=>$this->getLastRetrieveDate())
             );
 
         if (FALSE && $this->db) {
@@ -68,7 +68,7 @@ class CreditmemoGateway extends AbstractGateway
                 $results = $this->restV1->get('creditmemos', array(
                     'filter'=>array(array(
                         'field'=>'updated_at',
-                        'value'=>$this->lastRetrieveDate,
+                        'value'=>$this->getLastRetrieveDate(),
                         'condition_type'=>'gt'
                     ))
                 ));

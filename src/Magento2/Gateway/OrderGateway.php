@@ -663,8 +663,8 @@ class OrderGateway extends AbstractGateway
         $this->getServiceLocator()->get('logService')
             ->log(LogService::LEVEL_INFO,
                 $this->getLogCode().'_re_time',
-                'Retrieving orders updated since '.$this->lastRetrieveDate,
-                array('type'=>'order', 'timestamp'=>$this->lastRetrieveDate)
+                'Retrieving orders updated since '.$this->getLastRetrieveDate(),
+                array('type'=>'order', 'timestamp'=>$this->getLastRetrieveDate())
             );
 
         $storedOrders = 0;
@@ -673,7 +673,7 @@ class OrderGateway extends AbstractGateway
             try{
                 // TECHNICAL DEBT // ToDo (maybe): Implement
                 $storeId = $orderIds = FALSE;
-                $orders = $this->db->getOrders($storeId, $this->lastRetrieveDate, FALSE, $orderIds);
+                $orders = $this->db->getOrders($storeId, $this->getLastRetrieveDate(), FALSE, $orderIds);
                 foreach ($orders as $order) {
                     $orderData = (array) $order;
                     if ($this->isOrderToBeRetrieved($orderData)) {
@@ -690,7 +690,7 @@ class OrderGateway extends AbstractGateway
             try{
                 $filter = array(array(
                     'field'=>'updated_at',
-                    'value'=>$this->lastRetrieveDate,
+                    'value'=>$this->getLastRetrieveDate(),
                     'condition_type'=>'gt'
                 ));
                 $orders = $this->restV1->get('orders', array('filter'=>$filter));
@@ -703,8 +703,8 @@ class OrderGateway extends AbstractGateway
                 $this->getServiceLocator()->get('logService')
                     ->log(LogService::LEVEL_INFO,
                         $this->getLogCode().'_rest_list',
-                        'Retrieved salesOrderList updated from '.$this->lastRetrieveDate,
-                        array('updated_at'=>$this->lastRetrieveDate, 'orders'=>$orderIncrementIds)
+                        'Retrieved salesOrderList updated from '.$this->getLastRetrieveDate(),
+                        array('updated_at'=>$this->getLastRetrieveDate(), 'orders'=>$orderIncrementIds)
                     );
                 foreach ($orders as $order) {
                     $orderData = (array) $order;
@@ -719,7 +719,7 @@ class OrderGateway extends AbstractGateway
                     $this->getServiceLocator()->get('logService')
                         ->log(LogService::LEVEL_ERROR,
                             $this->getLogCode().'rest_lerr',
-                            'Error on restV1 call salesOrderList since '.$this->lastRetrieveDate,
+                            'Error on restV1 call salesOrderList since '.$this->getLastRetrieveDate(),
                             array('orders'=>(isset($orders) ? $orders : 'not set'), 'filter'=>$filter)
                         );
                 }

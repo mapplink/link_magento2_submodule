@@ -74,8 +74,8 @@ class CustomerGateway extends AbstractGateway
         $this->getServiceLocator()->get('logService')
             ->log(LogService::LEVEL_INFO,
                 $this->getLogCode().'_re_time',
-                'Retrieving customers updated since '.$this->lastRetrieveDate,
-                array('type'=>'customer', 'timestamp'=>$this->lastRetrieveDate)
+                'Retrieving customers updated since '.$this->getLastRetrieveDate(),
+                array('type'=>'customer', 'timestamp'=>$this->getLastRetrieveDate())
             );
 
         if ($this->restV1) {
@@ -83,7 +83,7 @@ class CustomerGateway extends AbstractGateway
                 $results = $this->restV1->get('customers/search', array(
                     'filter'=>array(array(
                         'field'=>'updated_at',
-                        'value'=>$this->lastRetrieveDate,
+                        'value'=>$this->getLastRetrieveDate(),
                         'condition_type'=>'gt'
                     ))
                 ));
