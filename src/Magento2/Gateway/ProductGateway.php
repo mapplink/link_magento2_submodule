@@ -867,7 +867,8 @@ $storeIds = array(current($storeIds));
                 'attribute_set_id', 'status', 'type_id', 'visibility', 'created_at', 'updated_at');
 
             foreach ($data as $code=>$value) {
-                $isCustomAttribute = in_array($code, $customAttributeCodes) && !in_array($code, $rootAttributes);
+                // $isCustomAttribute = in_array($code, $customAttributeCodes) || !in_array($code, $rootAttributes); ToDo: Remove after review
+                $isCustomAttribute = !in_array($code, $rootAttributes);
                 if (is_null($value)) {
                     unset($restData[$code]);
                 }elseif ($isCustomAttribute && is_array($data[$code])) {
