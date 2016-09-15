@@ -288,45 +288,45 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
      */
     protected function call($httpMethod, $callType, array $parameters = array())
     {
-        $this->authorise();
+        if ($this->authorise()) {
+            $this->requestType = strtoupper($httpMethod);
+            $setRequestDataMethod = 'set'.ucfirst(strtolower($httpMethod)).'fields';
 
-        $this->requestType = strtoupper($httpMethod);
-        $setRequestDataMethod = 'set'.ucfirst(strtolower($httpMethod)).'fields';
+            $uri = $this->getUrl($callType);
+            $headersArray = array(
+                'Authorization' => $this->authorisation,
+                'Accept'=>'application/json',
+                'Content-Type'=>'application/json'
+            );
 
-        $uri = $this->getUrl($callType);
-        $headersArray = array(
-            'Authorization' => $this->authorisation,
-            'Accept'=>'application/json',
-            'Content-Type'=>'application/json'
-        );
+            $headers = new Headers();
+            $headers->addHeaders($headersArray);
 
-        $headers = new Headers();
-        $headers->addHeaders($headersArray);
+            $this->request = new Request();
+            $this->request->setHeaders($headers);
+            $this->request->setUri($uri);
+            $this->request->setMethod($this->requestType);
 
-        $this->request = new Request();
-        $this->request->setHeaders($headers);
-        $this->request->setUri($uri);
-        $this->request->setMethod($this->requestType);
+            $this->client = new Client();
+            $this->client->setOptions($this->clientOptions);
 
-        $this->client = new Client();
-        $this->client->setOptions($this->clientOptions);
+            $this->$setRequestDataMethod($parameters);
+            $response = $this->client->send($this->request);
 
-        $this->$setRequestDataMethod($parameters);
-        $response = $this->client->send($this->request);
+            if (!is_array($response)) {
+                $responseBody = $response->getBody();
+                $response = Json::decode($responseBody, Json::TYPE_ARRAY);
+            }
 
-        if (!is_array($response)) {
-            $responseBody = $response->getBody();
-            $response = Json::decode($responseBody, Json::TYPE_ARRAY);
-        }
-
-        if (is_array($response) && array_key_exists('items', $response)) {
-            $response = $response['items'];
-        }elseif (isset($response['message'])) {
-            $logData = array('uri'=>$uri, 'headers'=>$headersArray, 'method'=>$this->requestType,
-                'options'=>$this->clientOptions, 'parameters'=>$parameters, 'response'=>$response);
-            $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_ERROR,
-                $this->getLogCodePrefix().'_call_err', 'REST ERROR: '.$response['message'], $logData);
-            throw new GatewayException('REST ERROR: '.$response['message']);
+            if (is_array($response) && array_key_exists('items', $response)) {
+                $response = $response['items'];
+            }elseif (isset($response['message'])) {
+                $logData = array('uri'=>$uri, 'headers'=>$headersArray, 'method'=>$this->requestType,
+                    'options'=>$this->clientOptions, 'parameters'=>$parameters, 'response'=>$response);
+                $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_ERROR,
+                    $this->getLogCodePrefix().'_call_err', 'REST ERROR: '.$response['message'], $logData);
+                throw new GatewayException('REST ERROR: '.$response['message']);
+            }
         }
 
         return $response;
