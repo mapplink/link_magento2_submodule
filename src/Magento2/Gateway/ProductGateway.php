@@ -33,7 +33,8 @@ class ProductGateway extends AbstractGateway
     protected $magento2Service = NULL;
     /** @var array $this->attributeSets */
     protected $attributeSets;
-
+    /** @var array $this->attributeOptions */
+    protected $attributeOptions =array();
 
     // ToDo: Move mapping to config
     /** @var array self::$colourById */
@@ -218,6 +219,57 @@ class ProductGateway extends AbstractGateway
     public static function getSizeId($sizeString)
     {
         return self::getMappedId('size', $sizeString);
+    }
+
+    public function getAttributeOptions($code)
+    {
+        if (is_null($this->attributeOptions[$code])) {
+            $this->attributeOptions[$code] = array(
+                array(
+                    "label"=>"string",
+                    "value"=>"string",
+                    "sortOrder"=>0,
+                    "isDefault"=>true,
+                    "storeLabels"=>array(
+                        array(
+                            "storeId"=>0,
+                            "label"=>"string"
+                        )
+                    )
+                )
+            );
+        }
+
+        return $this->attributeOptions[$code];
+    }
+
+    /**
+     * @param array $configurableProductOptionLabels
+     * @return array $configurableProductOptions
+     */
+    protected function getConfigurableProductOptions(array $configurableProductOptionLabels)
+    {
+return array(
+    array(
+        "attribute_id"=>90,
+        "label"=>"color",
+        "position"=>"0",
+        "values"=>array(array("value_index"=>8), array("value_index"=>9))
+    ),
+    array(
+        "attribute_id"=>136,
+        "label"=>"size",
+        "position"=>"0",
+        "values"=>array(array("value_index"=>5), array("value_index"=>4))
+    )
+);
+
+        $configurableProductOptions = array();
+        foreach ($configurableProductOptionLabels as $attributeCode) {
+            $configurableProductOptions[] = $this->getAttributeOptions($attributeCode);
+        }
+
+        return $configurableProductOptions;
     }
 
     /**
@@ -734,7 +786,7 @@ $storeIds = array(current($storeIds));
     {
         // TECHNICAL DEBT // ToDo : change this into a mapping
 
-        $data = array();
+        $data = array('configurable_product_options'=>array());
 
         foreach ($product->getArrayCopy() as $code=>$value) {
             $mappedCode = $this->getMagento2Service()->getMappedCode('product', $code);
@@ -771,9 +823,11 @@ $storeIds = array(current($storeIds));
                     break;
                 case 'color':
                     $data['color'] = self::getColourId($value);
+                    $data['configurable_product_options'][] = $mappedCode;
                     break;
                 case 'size':
                     $data['size'] = self::getSizeId($value);
+                    $data['configurable_product_options'][] = $mappedCode;
                     break;
                 case 'configurable_sku':
                 // TECHNICAL DEBT // ToDo (maybe) : Add logic for this custom attributes
@@ -918,6 +972,8 @@ $storeIds = array(current($storeIds));
             $restData['extension_attributes']['stock_item'] = $this->getStockitemWriteData($stockitem);
 
             if ($product->isTypeConfigurable()) {
+                $restData['extension_attributes']['configurable_product_options'] =
+                    $this->getConfigurableProductOptions($data['configurable_product_options']);
                 $restData['extension_attributes']['configurable_product_links'] =
                     $product->getConfigurableProductLinks($nodeId);
             }
@@ -1245,7 +1301,7 @@ foreach ($websiteIds as $websiteId) {
                             $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_INFO,
                                 $this->getLogCode().'_wr_prows',
                                 'Added product with '.$sku.' to website '.$websiteId.' on node '.$nodeId.'.',
-                                array_replace_recursive($logData, array('website id' => $websiteId))
+                                array_replace_recursive($logData, array('website id'=>$websiteId))
                             );
                         }
 }
