@@ -249,18 +249,20 @@ class ProductGateway extends AbstractGateway
      */
     protected function getConfigurableProductOptions(array $configurableProductOptionLabels)
     {
+$colorValues = array(); foreach(array_keys(self::$colourById) as $id) { $colorValues[] = array("value_index"=>$id); }
+$sizeValues = array(); foreach(array_keys(self::$sizeById) as $id) { $sizeValues[] = array("value_index"=>$id); }
 return array(
     array(
         "attribute_id"=>90,
         "label"=>"color",
         "position"=>"0",
-        "values"=>array(array("value_index"=>8), array("value_index"=>9))
+        "values"=>$colorValues
     ),
     array(
         "attribute_id"=>136,
         "label"=>"size",
         "position"=>"0",
-        "values"=>array(array("value_index"=>5), array("value_index"=>4))
+        "values"=>$sizeValues
     )
 );
 
