@@ -782,9 +782,9 @@ $storeIds = array(current($storeIds));
                     // Ignore attributes
                     break;
                 case 'type':
-                    if ($type != Update::TYPE_CREATE) {
+// ToDo: Review if this should be reenabled                    if ($type != Update::TYPE_CREATE) {
                         $data['type_id'] = $value;
-                    }
+//                    }
                     break;
                 default:
                     $this->getServiceLocator()->get('logService')
