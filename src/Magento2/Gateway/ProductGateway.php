@@ -1210,7 +1210,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                         $message = 'Creating product (ReST) : '.$sku.' with '.implode(', ', array_keys($productData));
                         $logData['set'] = $restData['attribute_set_id'];
                         $this->getServiceLocator()->get('logService')
-                            ->log(LogService::LEVEL_INFO, $this->getLogCode().'_wr_cr', $message, $logData);
+                            ->log(LogService::LEVEL_INFO, $logCode, $message, $logData);
 
                         try{
                             $postData = array('product'=>$restData, 'saveOptions'=>TRUE);
