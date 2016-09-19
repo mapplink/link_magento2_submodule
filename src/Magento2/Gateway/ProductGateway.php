@@ -1133,7 +1133,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                         $api = 'restV1';
                     }
 
-                    if ($type == Update::TYPE_UPDATE || $localId) {
+                    if ($type == Update::TYPE_UPDATE || $localId || $type == Update::TYPE_CREATE) {
                         if ($updateViaDbApi) {
                             try{
                                 $tablePrefix = 'catalog_product';
