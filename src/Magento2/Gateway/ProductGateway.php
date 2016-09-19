@@ -1126,7 +1126,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
 
                     $restResult = NULL;
 
-                    $updateViaDbApi = ($this->db && $localId && $storeId == 0);
+                    $updateViaDbApi = ($this->db && $localId && $storeId == 0 && $type == Update::TYPE_UPDATE);
                     if ($updateViaDbApi) {
                         $api = 'db';
                     }else{
