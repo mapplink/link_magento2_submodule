@@ -991,6 +991,16 @@ $storeIds = array(current($storeIds));
     }
 
     /**
+     * @param array $restData
+     * @return array $filteredLogData
+     */
+    protected function getFilteredRestDataForLogging(array $restData)
+    {
+        unset($restData['product']['extension_attributes']['configurable_product_options']);
+        return $restData;
+    }
+
+    /**
      * Write out all the updates to the given entity.
      * @param \Entity\Entity $entity
      * @param string[] $attributes
@@ -1169,7 +1179,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
 
                                 $putData = array('product'=>
                                     $this->getDataForRestCall($product, $productData, $customAttributes));
-                                $logData['put data'] = $putData;
+                                $logData['put data'] = $this->getFilteredRestDataForLogging($putData, array('product'));
 
                                 $restResult = array('update'=>$this->restV1->put('products/'.$sku, $putData));
 
@@ -1211,7 +1221,8 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                         $logCode = $this->getLogCode().'_wr_crrest';
                         $message = 'Creating product (ReST) : '.$sku.' with '.implode(', ', array_keys($productData));
                         $logData['set'] = $restData['attribute_set_id'];
-                        $logData['post data'] = $postData;
+                        $logData['put data'] = isset($logData['put data']);
+                        $logData['post data'] = $this->getFilteredRestDataForLogging($postData);
 
                         $this->getServiceLocator()->get('logService')
                             ->log(LogService::LEVEL_INFO, $logCode, $message, $logData);
