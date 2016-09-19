@@ -871,7 +871,7 @@ $storeIds = array(current($storeIds));
             switch ($code) {
                 case 'available':
                     $product = $stockitem->getParent();
-                    if ($product->getData('type') == Product::TYPE_SIMPLE) {
+                    if ($product->getData('type', NULL) == Product::TYPE_SIMPLE) {
                         $data['qty'] = $value;
                     }
                     $data['is_in_stock'] = ($value > 0 ? 1 : 0);
@@ -944,7 +944,7 @@ $storeIds = array(current($storeIds));
                 }
             }
 
-            if (!isset($data['type']) || $data['type'] == 'simple') {
+            if (!isset($data['type']) || $data['type'] == Product::TYPE_SIMPLE) {
                 $urlKey = $restData['name'].'-'.$sku
                     .(isset($data['color']) ? '-'.self::getColour($data['color']) : '')
                     .(isset($data['size']) ? '-'.self::getSize($data['size']) : '');
@@ -1109,7 +1109,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                     $restData = $this->getDataForRestCall($product, $productData, $customAttributes);
 
                     $logData = array(
-                        'type'=>$entity->getData('type'),
+                        'type'=>$entity->getData('type', NULL),
                         'store id'=>$storeId,
                         'product data'=>$productData,
                         'rest data'=>$restData
