@@ -563,7 +563,7 @@ $storeIds = array(current($storeIds));
                         );
                 }
                 $needsUpdate = FALSE;
-            }elseif ($noneOrWrongLocalId != NULL) {
+            }elseif (!is_null($noneOrWrongLocalId)) {
                 $this->_entityService->unlinkEntity($this->_node->getNodeId(), $existingEntity);
                 $this->_entityService->linkEntity($this->_node->getNodeId(), $existingEntity, $productId);
 
@@ -1204,8 +1204,10 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                                     $logData[strtolower($api.' error')] = $exception->getMessage();
                                 }
 
-                                $this->_entityService->unlinkEntity($nodeId, $product);
-                                $localId = NULL;
+                                if ($this->_entityService->getLocalId($nodeId, $product)) {
+                                    $this->_entityService->unlinkEntity($nodeId, $product);
+                                    $localId = NULL;
+                                }
                             }
 
                             $logMessage .= ($restResult ? 'successfully' : 'without success').' via ReST api.'
