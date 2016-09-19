@@ -1109,10 +1109,9 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                     $restData = $this->getDataForRestCall($product, $productData, $customAttributes);
 
                     $logData = array(
-                        'type'=>$entity->getData('type', NULL),
+                        'type'=>$entity->getData('type'),
                         'store id'=>$storeId,
-                        'product data'=>$productData,
-                        'rest data'=>$restData
+                        'product data'=>$productData
                     );
 
                     $restResult = NULL;
@@ -1168,7 +1167,8 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                                     // if not unset($localId) and change type to Update::TYPE_CREATE
                                 }
 
-                                $putData = array('product'=>$restData);
+                                $putData = array('product'=>
+                                    $this->getDataForRestCall($product, $productData, $customAttributes));
                                 $logData['put data'] = $putData;
 
                                 $restResult = array('update'=>$this->restV1->put('products/'.$sku, $putData));
@@ -1206,18 +1206,21 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                             throw new \Magelink\Exception\SyncException($message);
                         }
 
+                        $postData = array('product'=>$restData, 'saveOptions'=>TRUE);
+
                         $logCode = $this->getLogCode().'_wr_crrest';
                         $message = 'Creating product (ReST) : '.$sku.' with '.implode(', ', array_keys($productData));
                         $logData['set'] = $restData['attribute_set_id'];
+                        $logData['post data'] = $postData;
+
                         $this->getServiceLocator()->get('logService')
                             ->log(LogService::LEVEL_INFO, $logCode, $message, $logData);
 
                         try{
-                            $postData = array('product'=>$restData, 'saveOptions'=>TRUE);
-                            $logData['post data'] = $postData;
 
                             $restResult = $this->restV1->post('products', $postData);
                             $restFault = NULL;
+
                         }catch(\Exception $exception) {
                             if (is_null($restFault = $exception->getPrevious())) {
                                 $restFault = $exception;
