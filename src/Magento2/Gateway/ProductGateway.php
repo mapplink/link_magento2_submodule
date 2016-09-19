@@ -994,7 +994,7 @@ $storeIds = array(current($storeIds));
      * @param array $restData
      * @return array $filteredLogData
      */
-    protected function getFilteredRestDataForLogging(array $restData)
+    protected function getFilteredRestData(array $restData)
     {
         unset($restData['product']['extension_attributes']['configurable_product_options']);
         return $restData;
@@ -1177,9 +1177,10 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                                     // if not unset($localId) and change type to Update::TYPE_CREATE
                                 }
 
-                                $putData = array('product'=>
-                                    $this->getDataForRestCall($product, $productData, $customAttributes));
-                                $logData['put data'] = $this->getFilteredRestDataForLogging($putData, array('product'));
+                                $putData = $this->getFilteredRestData(array(
+                                    'product'=>$this->getDataForRestCall($product, $productData, $customAttributes)
+                                ));
+                                $logData['put data'] = $putData;
 
                                 $restResult = array('update'=>$this->restV1->put('products/'.$sku, $putData));
 
@@ -1222,7 +1223,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                         $message = 'Creating product (ReST) : '.$sku.' with '.implode(', ', array_keys($productData));
                         $logData['set'] = $restData['attribute_set_id'];
                         $logData['put data'] = isset($logData['put data']);
-                        $logData['post data'] = $this->getFilteredRestDataForLogging($postData);
+                        $logData['post data'] = $this->getFilteredRestData($postData);
 
                         $this->getServiceLocator()->get('logService')
                             ->log(LogService::LEVEL_INFO, $logCode, $message, $logData);
