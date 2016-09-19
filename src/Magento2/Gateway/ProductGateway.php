@@ -977,10 +977,13 @@ $storeIds = array(current($storeIds));
             $restData['extension_attributes']['stock_item'] = $this->getStockitemWriteData($stockitem);
 
             if ($product->isTypeConfigurable()) {
-                $restData['extension_attributes']['configurable_product_options'] =
-                    $this->getConfigurableProductOptions($data['configurable_product_options']);
                 $restData['extension_attributes']['configurable_product_links'] =
                     $product->getConfigurableProductLinks($nodeId);
+
+                if (isset($data['configurable_product_options'])) {
+                    $restData['extension_attributes']['configurable_product_options'] =
+                        $this->getConfigurableProductOptions($data['configurable_product_options']);
+                }
             }
             unset($restData['configurable_product_options']);
 
