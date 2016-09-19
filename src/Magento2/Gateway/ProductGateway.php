@@ -1109,7 +1109,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                         'type'=>$entity->getData('type'),
                         'store id'=>$storeId,
                         'product data'=>$productData,
-                        'restData'=>$restData
+                        'rest data'=>$restData
                     );
 
                     $restResult = NULL;
@@ -1159,18 +1159,16 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                                         unset($productData[$attributeCode]);
                                     }
                                 }
-                                $updateRestData = $this->getDataForRestCall($product, $productData, $customAttributes);
 
-                                if (count($updateRestData) == 0) {
+                                if (count($restData) == 0) {
                                     // ToDo: Check if products exists remotely
                                     // if not unset($localId) and change type to Update::TYPE_CREATE
-
-                                    $logData['updateRestData'] = $updateRestData;
                                 }
 
-                                $putData = array('product'=>$updateRestData);
-                                $restResult = array('update'=>
-                                    $this->restV1->put('products/'.$sku, $putData));
+                                $putData = array('product'=>$restData);
+                                $logData['put data'] = $putData;
+
+                                $restResult = array('update'=>$this->restV1->put('products/'.$sku, $putData));
 
                                 if (is_null($localId) && isset($restResult['update']['id'])) {
                                     $localId = $restResult['update']['id'];
@@ -1195,8 +1193,6 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
 
                             $logMessage .= ($restResult ? 'successfully' : 'without success').' via ReST api.'
                                 .($type == Update::TYPE_CREATE ? ' Try to create now.' : '');
-                            $logData['rest data'] = $restData;
-                            $logData['rest result'] = $restResult;
                         }
                         $this->getServiceLocator()->get('logService')->log($logLevel, $logCode, $logMessage, $logData);
                     }
@@ -1214,10 +1210,8 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                             ->log(LogService::LEVEL_INFO, $this->getLogCode().'_wr_cr', $message, $logData);
 
                         try{
-                            $postData = array(
-                                'product'=>$restData,
-                                'saveOptions'=>TRUE
-                            );
+                            $postData = array('product'=>$restData, 'saveOptions'=>TRUE);
+                            $logData['post data'] = $postData;
 
                             $restResult = $this->restV1->post('products', $postData);
                             $restFault = NULL;
@@ -1275,9 +1269,9 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                                 $localId = NULL;
                             }
 
+                            $logData['rest result'] = $restResult;
                             $this->_entityService->linkEntity($nodeId, $product, $localId);
 
-                            $logData['rest data'] = $restData;
                             $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_INFO,
                                 $this->getLogCode().'_wr_loc_id',
                                 'Added product local id '.$localId.' for '.$sku.' ('.$nodeId.')',
