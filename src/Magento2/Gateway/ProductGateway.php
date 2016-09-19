@@ -870,7 +870,10 @@ $storeIds = array(current($storeIds));
         foreach ($stockitem->getArrayCopy() as $code=>$value) {
             switch ($code) {
                 case 'available':
-                    $data['qty'] = $value;
+                    $product = $stockitem->getParent();
+                    if ($product->getData('type') == Product::TYPE_SIMPLE) {
+                        $data['qty'] = $value;
+                    }
                     $data['is_in_stock'] = ($value > 0 ? 1 : 0);
                     break;
                 case 'qty_pre_transit':
