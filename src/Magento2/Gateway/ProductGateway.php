@@ -915,13 +915,20 @@ $storeIds = array(current($storeIds));
             $restData = array();
 
         }else{
+            $specialPriceCodes = array('special_price', 'special_from_date', 'special_to_date');
+
+            if (isset($data['price']) && isset($data['special_price']) && $data['price'] == $data['special_price']) {
+                foreach ($specialPriceCodes as $code) {
+                    unset($data[$code]);
+                }
+                $data['special_to_date'] = date('Y-m-s H:i:s');
+                $specialPriceCodes = array('special_to_date');
+            }
+
             $restData = array_replace(array('name'=>$product->getData('name'), 'sku'=>$sku), $data);
 
             $customAttributes = array();
-            $customAttributeCodes = array_merge(
-                $customAttributeCodes,
-                array('special_price', 'special_from_date', 'special_to_date')
-            );
+            $customAttributeCodes = array_merge($customAttributeCodes, $specialPriceCodes);
             $rootAttributes = array('id', 'sku', 'name', 'price', 'weight',
                 'attribute_set_id', 'status', 'type_id', 'visibility', 'created_at', 'updated_at');
 
