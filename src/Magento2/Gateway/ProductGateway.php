@@ -1166,7 +1166,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                             $logMessage .= 'successfully via DB api with '.implode(', ', array_keys($productData));
                         }else{
                             $logLevel = LogService::LEVEL_INFO;
-                            $logCode = $this->getLogCode().'_wr_updrest';
+                            $logCode = $this->getLogCode().'_wr_restput';
 
                             try{
                                 if ($type == Update::TYPE_UPDATE) {
@@ -1233,7 +1233,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
 
                         $postData = array('product'=>$restData, 'saveOptions'=>TRUE);
 
-                        $logCode = $this->getLogCode().'_wr_crrest';
+                        $logCode = $this->getLogCode().'_wr_restpst';
                         $message = 'Creating product (ReST) : '.$sku.' with '.implode(', ', array_keys($productData));
                         $logData['set'] = $restData['attribute_set_id'];
                         $logData['put data'] = isset($logData['put data']);
