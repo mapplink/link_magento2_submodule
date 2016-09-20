@@ -944,7 +944,7 @@ $storeIds = array(current($storeIds));
                 }
             }
 
-            if (!isset($data['type']) || $data['type'] == Product::TYPE_SIMPLE) {
+            if (!isset($data['type_id']) || $data['type_id'] == Product::TYPE_SIMPLE) {
                 $urlKey = $restData['name'].'-'.$sku
                     .(isset($data['color']) ? '-'.self::getColour($data['color']) : '')
                     .(isset($data['size']) ? '-'.self::getSize($data['size']) : '');
@@ -1043,7 +1043,7 @@ $storeIds = array(current($storeIds));
 
         $originalData = $product->getFullArrayCopy();
         $attributeCodes = array_unique(array_merge(
-            //array('special_price', 'special_from_date', 'special_to_date'), // force update of these attributes
+            //array('name', 'price', 'special_price', 'special_from_date', 'special_to_date', 'type_id'),
             //$customAttributes,
             $attributes
         ));
@@ -1122,7 +1122,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                     $restData = $this->getDataForRestCall($product, $productData, $customAttributes);
 
                     $logData = array(
-                        'type'=>$entity->getData('type'),
+                        'type'=>$product->getData('type'),
                         'store id'=>$storeId,
                         'product data'=>$productData
                     );
@@ -1157,11 +1157,11 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                             }
                         }
 
-                        $type = Update::TYPE_UPDATE;
                         $logLevel = LogService::LEVEL_INFO;
                         $logMessage = 'Updated product '.$sku.' on store '.$storeId.' ';
 
                         if ($updateViaDbApi) {
+                            $type = Update::TYPE_UPDATE;
                             $logCode = $this->getLogCode().'_wr_upddb';
                             $logMessage .= 'successfully via DB api with '.implode(', ', array_keys($productData));
                         }else{
@@ -1169,15 +1169,24 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                             $logCode = $this->getLogCode().'_wr_updrest';
 
                             try{
-                                foreach ($productData as $attributeCode=>$attributeValue) {
-                                    if (!in_array($attributeCode, $attributeCodes)) {
-                                        unset($productData[$attributeCode]);
+                                if ($type == Update::TYPE_UPDATE) {
+                                    foreach ($productData as $attributeCode=>$attributeValue) {
+                                        if (!in_array($attributeCode, $attributeCodes)) {
+                                            unset($productData[$attributeCode]);
+                                        }
                                     }
                                 }
 
                                 if (count($restData) == 0) {
                                     // ToDo: Check if products exists remotely
-                                    // if not unset($localId) and change type to Update::TYPE_CREATE
+                                    if (TRUE) {
+                                        $type = Update::TYPE_UPDATE;
+                                    }else{
+                                        $localId = NULL;
+                                        $type = Update::TYPE_CREATE;
+                                    }
+                                }else{
+                                    $type = Update::TYPE_UPDATE;
                                 }
 
                                 $putData = $this->getFilteredRestData(array(
