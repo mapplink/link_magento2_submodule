@@ -242,9 +242,6 @@ class CreditmemoGateway extends AbstractGateway
             throw new NodeException('No valid API available for sync');
         }
 
-        $this->_nodeService
-            ->setTimestamp($this->_nodeEntity->getNodeId(), 'creditmemo', 'retrieve', $this->getNewRetrieveTimestamp());
-
         return count($results);
     }
 

@@ -514,9 +514,6 @@ $storeIds = array(current($storeIds));
             $api = '-';
         }
 
-        $this->_nodeService
-            ->setTimestamp($this->_nodeEntity->getNodeId(), 'product', 'retrieve', $this->getNewRetrieveTimestamp());
-
         return count($results);
     }
 

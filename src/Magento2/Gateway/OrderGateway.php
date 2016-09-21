@@ -730,9 +730,6 @@ class OrderGateway extends AbstractGateway
             throw new NodeException('No valid API available for sync');
         }
 
-        $this->_nodeService
-            ->setTimestamp($this->_nodeEntity->getNodeId(), 'order', 'retrieve', $this->getNewRetrieveTimestamp());
-
         $seconds = ceil($this->getAdjustedTimestamp() - $this->getNewRetrieveTimestamp());
         $message = 'Retrieved '.count($orders).' orders in '.$seconds.'s up to '
             .strftime('%H:%M:%S, %d/%m', $this->retrieveTimestamp).'. Forced synchronisation comes next.';
