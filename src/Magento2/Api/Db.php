@@ -890,17 +890,25 @@ class Db implements ServiceLocatorAwareInterface
 
         foreach ($eavTableTypes as $prefix) {
             $table = $mainTable.'_'.$prefix;
-            $tableGateway = new TableGateway($table, $this->adapter);
 
-            $sql = $tableGateway->getSql();
-            $sqlDelete = $sql->delete()->where($where);
-            $deletedRows += $tableGateway->deleteWith($sqlDelete);
-            $sqlQueries[] = $sql->getSqlStringForSqlObject($sqlDelete);
-            $tableGateway->delete($where);
+            try{
+                $tableGateway = new TableGateway($table, $this->adapter);
+                $sql = $tableGateway->getSql();
+                $sqlDelete = $sql->delete()->where($where);
+                $deletedRows += $tableGateway->deleteWith($sqlDelete);
+                $sqlQueries[] = $sql->getSqlStringForSqlObject($sqlDelete);
+                $tableGateway->delete($where);
+            }catch (\Exception $exception) {
+                $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUG,
+                    'mg2_db_rm_spcerr',
+                    'Error on deleting store specific data',
+                    array('table'=>$table, 'deleted rows'=>$deletedRows, 'queries'=>$sqlQueries)
+                );
+            }
         }
 
         $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUG,
-            'mg2_db_rm_stospc',
+            'mg2_db_rm_spc',
             ($deletedRows > 0 ? 'Removed store specific data' : 'No store specific data was removed'),
             array('local id'=>$localId, 'deleted rows'=>$deletedRows, 'queries'=>$sqlQueries)
         );
