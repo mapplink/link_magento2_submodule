@@ -885,13 +885,27 @@ class Db implements ServiceLocatorAwareInterface
         $where->greaterThan('store_id', 0);
         $where->and->equalTo('entity_id', $localId);
 
+        $deletedRows = 0;
+        $sqlQueries = array();
+
         foreach ($eavTableTypes as $prefix) {
             $table = $mainTable.'_'.$prefix;
             $tableGateway = new TableGateway($table, $this->adapter);
+
+            $sql = $tableGateway->getSql();
+            $sqlDelete = $sql->delete()->where($where);
+            $deletedRows += $tableGateway->deleteWith($sqlDelete);
+            $sqlQueries[] = $sql->getSqlStringForSqlObject($sqlDelete);
             $tableGateway->delete($where);
         }
 
-        return TRUE;
+        $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUG,
+            'mg2_db_rm_stospc',
+            ($deletedRows > 0 ? 'Removed store specific data' : 'No store specific data was removed'),
+            array('local id'=>$localId, 'deleted rows'=>$deletedRows, 'queries'=>$sqlQueries)
+        );
+
+        return (bool) $deletedRows;
     }
 
     /**
