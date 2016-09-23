@@ -1140,7 +1140,7 @@ class OrderGateway extends AbstractGateway
     public function writeUpdates(\Entity\Entity $entity, $attributes, $type = \Entity\Update::TYPE_UPDATE)
     {
         // TECHNICAL DEBT // ToDo (unlikely): Create method. (We don't perform any direct updates to orders in this manner).
-        return;
+        return NULL;
     }
 
     /**

@@ -1053,6 +1053,8 @@ $storeIds = array(current($storeIds));
         ));
 
         $data = array();
+        $success = FALSE;
+
         if (count($originalData) == 0) {
             $this->getServiceLocator()->get('logService')
                 ->log(LogService::LEVEL_INFO,
@@ -1070,6 +1072,7 @@ $storeIds = array(current($storeIds));
 // TECHNICAL DEBT // ToDo: Remove hardcoding to default store
 foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = $storeData['website_id']; } $storeDataByStoreId = array(0=>(isset($storeDataByStoreId[0]) ? $storeDataByStoreId[0] : current($storeDataByStoreId)));
             if (count($storeDataByStoreId) > 0 && $type != Update::TYPE_DELETE) {
+                $success = TRUE;
                 $dataPerStore = array();
 
                 foreach ($storeDataByStoreId as $storeId=>$storeData) {
@@ -1319,7 +1322,8 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                         }
                     }
 
-                    if ($restResult) {
+                    $success &= (bool) $restResult;
+                    if ($success) {
                         $logData = array('sku'=>$sku);
 // TECHNICAL DEBT // ToDo: Remove hardcoding of all products being enabled on all websites
 //                        $websiteId = $websiteIds[$storeId];
@@ -1344,6 +1348,8 @@ foreach ($websiteIds as $websiteId) {
                 unset($dataPerStore);
             }
         }
+
+        return (bool) $success;
     }
 
     /**

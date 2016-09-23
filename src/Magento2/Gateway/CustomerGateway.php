@@ -343,7 +343,7 @@ class CustomerGateway extends AbstractGateway
      */
     public function writeUpdates(\Entity\Entity $entity, $attributes, $type = \Entity\Update::TYPE_UPDATE)
     {
-        return FALSE;
+        return NULL;
 
         // TECHNICAL DEBT // ToDo: Implement writeUpdates() method.
 
