@@ -14,6 +14,8 @@ use Log\Service\LogService;
 use Magelink\Exception\MagelinkException;
 use Magento2\Node;
 use Zend\Db\Adapter\Adapter;
+use Zend\Db\Sql\Delete;
+use Zend\Db\Sql\Select;
 use Zend\Db\Sql\Where;
 use Zend\Db\TableGateway\TableGateway;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
@@ -339,10 +341,10 @@ class Db implements ServiceLocatorAwareInterface
     }
 
     /**
-     * @param \Zend\Db\Sql\Select $select
+     * @param Select $select
      * @return array
      */
-    protected function getOrdersFromDatabase(\Zend\Db\Sql\Select $select)
+    protected function getOrdersFromDatabase(Select $select)
     {
         if ($this->orderColumns) {
             $select->columns($this->orderColumns);
@@ -364,7 +366,7 @@ class Db implements ServiceLocatorAwareInterface
      */
     public function getOrderByIncrementId($orderIncrementId)
     {
-        $select = new \Zend\Db\Sql\Select('sales_order');
+        $select = new Select('sales_order');
         $select->where(array('increment_id'=>array($orderIncrementId)));
 
         $data = $this->getOrdersFromDatabase($select);
@@ -387,7 +389,7 @@ class Db implements ServiceLocatorAwareInterface
      */
     public function getOrders($storeId = FALSE, $updatedSince = FALSE, $updatedTo = FALSE, array $orderIds = array())
     {
-        $select = new \Zend\Db\Sql\Select('sales_order');
+        $select = new Select('sales_order');
         $where = new Where();
 
         if ($storeId !== FALSE) {
@@ -869,6 +871,27 @@ class Db implements ServiceLocatorAwareInterface
         }
 
         return $attributeOptions;
+    }
+
+    /**
+     * @return bool $successful
+     */
+    public function removeAllStoreSpecificInformationOnProducts($localId)
+    {
+        $mainTable = 'catalog_product_entity';
+        $eavTableTypes = array('datetime', 'decimal', 'int', 'text', 'tier_price', 'varchar');
+
+        $where = new Where();
+        $where->greaterThan('store_id', 0);
+        $where->and->equalTo('entity_id', $localId);
+
+        foreach ($eavTableTypes as $prefix) {
+            $table = $mainTable.'_'.$prefix;
+            $tableGateway = new TableGateway($table, $this->adapter);
+            $tableGateway->delete($where);
+        }
+
+        return TRUE;
     }
 
     /**

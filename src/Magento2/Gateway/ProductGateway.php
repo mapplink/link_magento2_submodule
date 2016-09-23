@@ -1073,6 +1073,7 @@ $storeIds = array(current($storeIds));
 foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = $storeData['website_id']; } $storeDataByStoreId = array(0=>(isset($storeDataByStoreId[0]) ? $storeDataByStoreId[0] : current($storeDataByStoreId)));
             if (count($storeDataByStoreId) > 0 && $type != Update::TYPE_DELETE) {
                 $success = TRUE;
+                $oneSuccess = FALSE;
                 $dataPerStore = array();
 
                 foreach ($storeDataByStoreId as $storeId=>$storeData) {
@@ -1321,9 +1322,11 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                             throw new MagelinkException($message, 0, $restFault);
                         }
                     }
+                    $successful = (bool) $restResult;
+                    $success = $success && $successful;
+                    $oneSuccess = $oneSuccess || $successful;
 
-                    $success &= (bool) $restResult;
-                    if ($success) {
+                    if ($successful) {
                         $logData = array('sku'=>$sku);
 // TECHNICAL DEBT // ToDo: Remove hardcoding of all products being enabled on all websites
 //                        $websiteId = $websiteIds[$storeId];
@@ -1343,6 +1346,10 @@ foreach ($websiteIds as $websiteId) {
                         }
 }
                     }
+                }
+
+                if ($oneSuccess && $this->db && $localId) {
+                    $this->db->removeAllStoreSpecificInformationOnProducts($localId);
                 }
 
                 unset($dataPerStore);
