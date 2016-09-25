@@ -231,7 +231,7 @@ class CustomerGateway extends AbstractGateway
 
                     if ($this->db) {
                         try {
-                            $data['enable_newsletter'] = $this->db->getNewsletterStatus($localId);
+                            $data['enable_newsletter'] = (int) $this->db->getNewsletterStatus($localId);
                         }catch (\Exception $exception) {
                             throw new GatewayException($exception->getMessage(), $exception->getCode(), $exception);
                         }
