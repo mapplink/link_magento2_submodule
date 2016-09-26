@@ -1104,10 +1104,18 @@ class OrderGateway extends AbstractGateway
             }
 */
             if (!$entity) {
+                if (isset($addressData['street']) && is_string($addressData['street'])) {
+                    $street = $addressData['street'];
+                }elseif (isset($addressData['street']) && is_array($addressData['street'])) {
+                    $street = implode(chr(10), $addressData['street']);
+                }else{
+                    $street = NULL;
+                }
+
                 $data = array(
                     'first_name'=>(isset($addressData['firstname']) ? $addressData['firstname'] : null),
                     'last_name'=>(isset($addressData['lastname']) ? $addressData['lastname'] : null),
-                    'street'=>(isset($addressData['street']) ? $addressData['street'] : null),
+                    'street'=>$street,
                     'city'=>(isset($addressData['city']) ? $addressData['city'] : null),
                     'region'=>(isset($addressData['region']) ? $addressData['region'] : null),
                     'postcode'=>(isset($addressData['postcode']) ? $addressData['postcode'] : null),
