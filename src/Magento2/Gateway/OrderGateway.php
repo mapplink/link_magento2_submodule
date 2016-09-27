@@ -470,7 +470,6 @@ class OrderGateway extends AbstractGateway
                 $this->_entityService->beginEntityTransaction('magento2-order-'.$uniqueId);
                 try{
                     $data = array_merge($this->createAddresses($orderData), $data);
-                    $movedToProcessing = self::hasOrderStateProcessing($data['status']);
 
                     $existingEntity = $this->_entityService->createEntity(
                         $this->_node->getNodeId(),
@@ -602,9 +601,9 @@ class OrderGateway extends AbstractGateway
         $logData = array('order'=>$uniqueId, 'orderData'=>$orderData);
         $logEntities = array('entity'=>$existingEntity);
 
-        if ($movedToProcessing) {
+        if (isset($movedToProcessing) && $movedToProcessing) {
             $action = 'addPayment';
-        }elseif ($movedToCancel) {
+        }elseif (isset($movedToCancel) && $movedToCancel) {
             $action = 'cancel';
         }else{
             $action = NULL;
