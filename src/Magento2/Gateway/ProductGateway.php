@@ -1038,9 +1038,9 @@ $storeIds = array(current($storeIds));
         }
 
         $this->getServiceLocator()->get('logService')
-            ->log(LogService::LEVEL_DEBUGEXTRA,
-                $this->getLogCode().'_wrupd',
-                'Attributes for update of product '.$sku.': '.var_export($attributes, TRUE),
+            ->log(LogService::LEVEL_DEBUGEXTRA, $this->getLogCode().'_wrupd',
+                'Attributes for update of product '.$sku.': '
+                    .preg_replace('#\v+|\s{2,}#', ' ', var_export($attributes, TRUE)),
                array('attributes'=>$attributes, 'custom'=>$customAttributes),
                array('entity'=>$product)
             );
