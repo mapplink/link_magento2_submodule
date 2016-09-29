@@ -785,9 +785,14 @@ $storeIds = array(current($storeIds));
     {
         // TECHNICAL DEBT // ToDo : change this into a mapping
 
-        $data = array('configurable_product_options'=>array());
+        $productData = $product->getArrayCopy();
+        $isConfigurable = $product->isTypeConfigurable();
 
-        foreach ($product->getArrayCopy() as $code=>$value) {
+        if ($isConfigurable) {
+            $data = array('configurable_product_options' => array());
+        }
+
+        foreach ($productData as $code=>$value) {
             $mappedCode = $this->getMagento2Service()->getMappedCode('product', $code);
             switch ($mappedCode) {
                 case 'price':
@@ -821,12 +826,18 @@ $storeIds = array(current($storeIds));
                     $data['visibility'] = ($value == 1 ? 4 : 1);
                     break;
                 case 'color':
-                    $data['color'] = self::getColourId($value);
-                    $data['configurable_product_options'][] = $mappedCode;
+                    if ($isConfigurable) {
+                        $data['configurable_product_options'][] = $mappedCode;
+                    }else{
+                        $data['color'] = self::getColourId($value);
+                    }
                     break;
                 case 'size':
-                    $data['size'] = self::getSizeId($value);
-                    $data['configurable_product_options'][] = $mappedCode;
+                    if ($isConfigurable) {
+                        $data['configurable_product_options'][] = $mappedCode;
+                    }else{
+                        $data['size'] = self::getSizeId($value);
+                    }
                     break;
                 case 'configurable_sku':
                 // TECHNICAL DEBT // ToDo (maybe) : Add logic for this custom attributes
