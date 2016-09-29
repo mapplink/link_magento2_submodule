@@ -371,6 +371,7 @@ class OrderGateway extends AbstractGateway
         $nodeId = $this->_node->getNodeId();
         $storeId = ($this->_node->isMultiStore() ? $orderData['store_id'] : 0);
         $uniqueId = $orderData['increment_id'];
+        $status = isset($orderData['status']) ? $orderData['status'] : NULL;
         $localId = isset($orderData['entity_id']) ? $orderData['entity_id'] : $orderData['order_id'];
         $createdAtTimestamp = strtotime($orderData['created_at']);
 
@@ -381,7 +382,7 @@ class OrderGateway extends AbstractGateway
                 array_key_exists('customer_firstname', $orderData) ? $orderData['customer_firstname'].' ' : '')
                 .(array_key_exists('customer_lastname', $orderData) ? $orderData['customer_lastname'] : ''
                 ),
-            'status'=>(isset($orderData['status']) ? $orderData['status'] : NULL),
+            'status'=>$status,
             'placed_at'=>date('Y-m-d H:i:s', strtotime($correctionHours, $createdAtTimestamp)),
             'grand_total'=>$orderData['base_grand_total'],
             'base_to_currency_rate'=>$orderData['base_to_order_rate'],
@@ -492,14 +493,16 @@ class OrderGateway extends AbstractGateway
 
                     $this->createItems($orderData, $existingEntity);
 
-                    try{
+/* ToDo: Retrieve status before adding the comment
+                   try{
                         $comment = 'Order retrieved by MageLink, Entity #'.$existingEntity->getId();
                         $this->restV1->post('orders/'.$localId.'/comments', array(
                             'statusHistory'=>array(
                                 'comment'=>$comment,
                                 'isCustomerNotified'=>0,
                                 'isVisibleOnFront'=>0,
-                                'parentId'=>$localId
+                                'parentId'=>$localId.
+                                'status'=>$status
                             )
                         ));
                     }catch (\Exception $exception) {
@@ -510,6 +513,7 @@ class OrderGateway extends AbstractGateway
                                 array('node'=>$this->_node, 'entity'=>$existingEntity, 'exception'=>$exception)
                             );
                     }
+*/
                     $this->_entityService->commitEntityTransaction('magento2-order-'.$uniqueId);
                 }catch (\Exception $exception) {
                     $this->_entityService->rollbackEntityTransaction('magento2-order-'.$uniqueId);
