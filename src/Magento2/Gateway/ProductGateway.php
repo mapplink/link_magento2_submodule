@@ -1220,10 +1220,10 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                                 ));
                                 $logData['put data'] = $putData;
 
-                                $restResult = array('update'=>$this->restV1->put('products/'.$sku, $putData));
+                                $restResult = $this->restV1->put('products/'.$sku, $putData);
 
-                                if (is_null($localId) && isset($restResult['update']['id'])) {
-                                    $localId = $restResult['update']['id'];
+                                if (is_null($localId) && isset($restResult['id'])) {
+                                    $localId = $restResult['id'];
                                     $this->_entityService->linkEntity($nodeId, $product, $localId);
                                 }
                             }catch(\Exception $exception) {
@@ -1247,6 +1247,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
 
                             $logMessage .= ($restResult ? 'successfully' : 'without success').' via ReST api.'
                                 .($type == Update::TYPE_CREATE ? ' Try to create now.' : '');
+                            $logData['rest result'] = $restResult;
                         }
                         $this->getServiceLocator()->get('logService')->log($logLevel, $logCode, $logMessage, $logData);
                     }
@@ -1269,7 +1270,6 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                             ->log(LogService::LEVEL_INFO, $logCode, $message, $logData);
 
                         try{
-
                             $restResult = $this->restV1->post('products', $postData);
                             $restFault = NULL;
 
@@ -1320,16 +1320,16 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                             }
                         }
 
-                        if ($restResult) {
+                        if (is_array($restResult) && count($restResult)) {
                             if (isset($restResult['id'])) {
                                 $localId = $restResult['id'];
                             }else{
                                 $localId = NULL;
                             }
 
-                            $logData['rest result'] = $restResult;
                             $this->_entityService->linkEntity($nodeId, $product, $localId);
 
+                            $logData['rest result'] = $restResult;
                             $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_INFO,
                                 $this->getLogCode().'_wr_loc_id',
                                 'Added product local id '.$localId.' for '.$sku.' ('.$nodeId.')',
@@ -1340,6 +1340,9 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                             throw new MagelinkException($message, 0, $restFault);
                         }
                     }
+
+                    $logData['rest result'] = $restResult;
+
                     $successful = (bool) $restResult;
                     $success = $success && $successful;
                     $oneSuccess = $oneSuccess || $successful;
