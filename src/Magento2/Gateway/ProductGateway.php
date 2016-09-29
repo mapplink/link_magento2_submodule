@@ -1057,11 +1057,18 @@ $storeIds = array(current($storeIds));
             );
 
         $originalData = $product->getFullArrayCopy();
-        $attributeCodes = array_unique(array_merge(
-            //array('name', 'price', 'special_price', 'special_from_date', 'special_to_date', 'type_id'),
-            //$customAttributes,
-            $attributes
-        ));
+
+        $attributesAlwaysUpdated = array(
+            'name',
+            'type_id',
+            'price',
+            'special_price',
+            'special_from_date',
+            'special_to_date'
+        );
+        $attributeCodes = array_unique(
+            array_merge($attributesAlwaysUpdated, $customAttributes, $attributes)
+        );
 
         $data = array();
         $success = FALSE;
