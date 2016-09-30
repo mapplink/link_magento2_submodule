@@ -878,6 +878,7 @@ class Db implements ServiceLocatorAwareInterface
      */
     public function removeAllStoreSpecificInformationOnProducts($localId)
     {
+        $logCode = 'mg2_db_rm_spc';
         $mainTable = 'catalog_product_entity';
         $eavTableTypes = array('datetime', 'decimal', 'int', 'text', 'tier_price', 'varchar');
 
@@ -900,15 +901,14 @@ class Db implements ServiceLocatorAwareInterface
                 $tableGateway->delete($where);
             }catch (\Exception $exception) {
                 $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUG,
-                    'mg2_db_rm_spcerr',
-                    'Error on deleting store specific data',
+                    $logCode.'err',
+                    'Error on deleting store specific data: '.$exception->getMessage(),
                     array('table'=>$table, 'deleted rows'=>$deletedRows, 'queries'=>$sqlQueries)
                 );
             }
         }
 
-        $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUG,
-            'mg2_db_rm_spc',
+        $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUG, $logCode,
             ($deletedRows > 0 ? 'Removed store specific data' : 'No store specific data was removed'),
             array('local id'=>$localId, 'deleted rows'=>$deletedRows, 'queries'=>$sqlQueries)
         );
