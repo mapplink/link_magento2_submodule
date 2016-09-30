@@ -876,6 +876,54 @@ class Db implements ServiceLocatorAwareInterface
     /**
      * @return bool $successful
      */
+    public function correctPricesOnDifferentScopes($localId, $prices)
+    {
+        $logCode = 'mg2_db_mv_prc';
+        $attributesByTable = array(
+            'catalog_product_entity_datetime'=>array('special_from_date'=>76, 'special_from_date'=>77),
+            'catalog_product_entity_decimal'=>array('price'=>74, 'special_price'=>75, 'msrp'=>117)
+        );
+
+        $where = new Where();
+        $where->equalTo('store_id', 0);
+        $where->and->equalTo('entity_id', $localId);
+
+        $updatedRows = 0;
+        $sqlQueries = array();
+
+        foreach ($attributesByTable as $table=>$attributeIdsByCode) {
+            foreach ($attributeIdsByCode as $code=>$attributeId) {
+                $attributeWhere = clone $where;
+                $attributeWhere->and->equalTo('attribute_id', $attributeId);
+
+                try{
+                    $tableGateway = new TableGateway($table, $this->adapter);
+                    $sql = $tableGateway->getSql();
+                    $sqlUpdate = $sql->update()->set(array('value'=>$prices[$code]))->where($where);
+                    $updatedRows += $tableGateway->updateWith($sqlUpdate);
+                    $sqlQueries[] = $sql->getSqlStringForSqlObject($sqlUpdate);
+                }catch(\Exception $exception){
+                    $this->getServiceLocator()->get('logService')->log(
+                        LogService::LEVEL_DEBUG,
+                        $logCode.'err',
+                        'Error on updating default store data: '.$exception->getMessage(),
+                        array('table'=>$table, 'updated rows'=>$updatedRows, 'queries'=>$sqlQueries)
+                    );
+                }
+            }
+        }
+
+        $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUG, $logCode,
+            ($updatedRows > 0 ? 'Updated default store data' : 'No default store data was updated'),
+            array('local id'=>$localId, 'prices'=>$prices, 'attributesByTable'=>$attributesByTable,
+                'updated rows'=>$updatedRows, 'queries'=>$sqlQueries));
+
+        return (bool) $updatedRows;
+    }
+
+    /**
+     * @return bool $successful
+     */
     public function removeAllStoreSpecificInformationOnProducts($localId)
     {
         $logCode = 'mg2_db_rm_spc';
@@ -898,7 +946,6 @@ class Db implements ServiceLocatorAwareInterface
                 $sqlDelete = $sql->delete()->where($where);
                 $deletedRows += $tableGateway->deleteWith($sqlDelete);
                 $sqlQueries[] = $sql->getSqlStringForSqlObject($sqlDelete);
-                $tableGateway->delete($where);
             }catch (\Exception $exception) {
                 $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUG,
                     $logCode.'err',
@@ -1044,7 +1091,7 @@ class Db implements ServiceLocatorAwareInterface
 
             try{
                 $response = $this->getTableGateway('eav_attribute')
-                    ->select(array('entity_type_id' => $entityType, 'attribute_code' => $attributeCode));
+                    ->select(array('entity_type_id'=>$entityType, 'attribute_code'=>$attributeCode));
             }catch (\Exception $exception) {
                 throw new MagelinkException('On getAttribute(): '.$exception->getMessage());
             }

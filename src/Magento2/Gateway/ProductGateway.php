@@ -1058,17 +1058,10 @@ $storeIds = array(current($storeIds));
 
         $originalData = $product->getFullArrayCopy();
 
-        $attributesAlwaysUpdated = array(
-            'name',
-            'type_id',
-            'price',
-            'special_price',
-            'special_from_date',
-            'special_to_date'
-        );
-        $attributeCodes = array_unique(
-            array_merge($attributesAlwaysUpdated, $customAttributes, $attributes)
-        );
+        $priceAttributes = array('price', 'special_price', 'special_from_date', 'special_to_date', 'msrp');
+        $attributesAlwaysUpdated = array_merge($priceAttributes, array( 'name', 'type_id'));
+
+        $attributeCodes = array_unique(array_merge($attributesAlwaysUpdated, $customAttributes, $attributes));
 
         $data = array();
         $success = FALSE;
@@ -1138,6 +1131,13 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
 
                 foreach ($storeIds as $storeId) {
                     $productData = $dataPerStore[$storeId];
+
+                    $prices = array();
+                    foreach ($priceAttributes as $code) {
+                        if (array_key_exists($code, $productData)) {
+                            $prices[$code] = $productData[$code];
+                        }
+                    }
 
                     if ($storeId != 0 || $this->getMagento2Service()->isStoreUsingDefaults($storeId)) {
                         unset($productData['special_price']);
@@ -1347,6 +1347,11 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                     $success = $success && $successful;
                     $oneSuccess = $oneSuccess || $successful;
 
+                    if ($oneSuccess && $this->db && $localId) {
+                        $this->db->correctPricesOnDifferentScopes($localId, $prices);
+                        $this->db->removeAllStoreSpecificInformationOnProducts($localId);
+                    }
+
                     if ($successful) {
                         $logData = array('sku'=>$sku);
 // TECHNICAL DEBT // ToDo: Remove hardcoding of all products being enabled on all websites
@@ -1367,10 +1372,6 @@ foreach ($websiteIds as $websiteId) {
                         }
 }
                     }
-                }
-
-                if ($oneSuccess && $this->db && $localId) {
-                    $this->db->removeAllStoreSpecificInformationOnProducts($localId);
                 }
 
                 unset($dataPerStore);
