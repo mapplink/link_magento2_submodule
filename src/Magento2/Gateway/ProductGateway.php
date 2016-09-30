@@ -1084,7 +1084,6 @@ $storeIds = array(current($storeIds));
 foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = $storeData['website_id']; } $storeDataByStoreId = array(0=>(isset($storeDataByStoreId[0]) ? $storeDataByStoreId[0] : current($storeDataByStoreId)));
             if (count($storeDataByStoreId) > 0 && $type != Update::TYPE_DELETE) {
                 $success = TRUE;
-                $oneSuccess = FALSE;
                 $dataPerStore = array();
 
                 foreach ($storeDataByStoreId as $storeId=>$storeData) {
@@ -1345,30 +1344,31 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
 
                     $successful = (bool) $restResult;
                     $success = $success && $successful;
-                    $oneSuccess = $oneSuccess || $successful;
-
-                    if ($oneSuccess && $this->db && $localId) {
-                        $this->db->correctPricesOnDifferentScopes($localId, $prices);
-                        $this->db->removeAllStoreSpecificInformationOnProducts($localId);
-                    }
 
                     if ($successful) {
                         $logData = array('sku'=>$sku);
 // TECHNICAL DEBT // ToDo: Remove hardcoding of all products being enabled on all websites
 //                        $websiteId = $websiteIds[$storeId];
-foreach ($websiteIds as $websiteId) {
+foreach ($websiteIds as $storeId=>$websiteId) {
                         if ($websiteId > 0) {
                             $restResponse = $this->restV1->put(
                                 'products/'.$sku.'/websites',
                                 array('productWebsiteLink'=>array('sku'=>$sku, 'websiteId'=>$websiteId))
                             );
 
-                            $logData['website id'] = $websiteIds[$storeId];
+                            $logData['store id'] = $storeId;
+                            $logData['website id'] = $websiteId;
                             $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_INFO,
                                 $this->getLogCode().'_wr_prows',
                                 'Added product with '.$sku.' to website '.$websiteId.' on node '.$nodeId.'.',
                                 array_replace_recursive($logData, array('website id'=>$websiteId))
                             );
+                        }
+
+                        // ToDo: Remove after Magento2 API bugs are fixed
+                        if ($this->db && $localId) {
+                            $this->db->correctPricesOnDefault($localId, $prices);
+                            $this->db->removeAllStoreSpecificInformationOnProducts($localId, $storeId);
                         }
 }
                     }

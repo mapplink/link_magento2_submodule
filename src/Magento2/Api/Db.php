@@ -876,7 +876,7 @@ class Db implements ServiceLocatorAwareInterface
     /**
      * @return bool $successful
      */
-    public function correctPricesOnDifferentScopes($localId, $prices)
+    public function correctPricesOnDefault($localId, $prices)
     {
         $logCode = 'mg2_db_mv_prc';
         $attributesByTable = array(
@@ -922,9 +922,11 @@ class Db implements ServiceLocatorAwareInterface
     }
 
     /**
+     * @param int $localId
+     * @param int $storeId
      * @return bool $successful
      */
-    public function removeAllStoreSpecificInformationOnProducts($localId)
+    public function removeAllStoreSpecificInformationOnProducts($localId, $storeId)
     {
         $logCode = 'mg2_db_rm_spc';
         $mainTable = 'catalog_product_entity';
