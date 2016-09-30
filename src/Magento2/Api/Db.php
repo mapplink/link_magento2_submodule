@@ -926,15 +926,20 @@ class Db implements ServiceLocatorAwareInterface
      * @param int $storeId
      * @return bool $successful
      */
-    public function removeAllStoreSpecificInformationOnProducts($localId, $storeId)
+    public function removeAllStoreSpecificInformationOnProducts($localId, $storeId, $websiteId)
     {
         $logCode = 'mg2_db_rm_spc';
         $mainTable = 'catalog_product_entity';
         $eavTableTypes = array('datetime', 'decimal', 'int', 'text', 'tier_price', 'varchar');
+        $eavTablesWithwebsiteId = array('tier_price');
 
         $where = new Where();
-        $where->greaterThan('store_id', 0);
-        $where->and->equalTo('entity_id', $localId);
+        $where->equalTo('entity_id', $localId);
+
+        $whereTierPrice = clone $where;
+
+        $where->and->greaterThan('store_id', 0);
+        $whereTierPrice->and->greaterThan('website_id', 0);
 
         $deletedRows = 0;
         $sqlQueries = array();
@@ -945,7 +950,11 @@ class Db implements ServiceLocatorAwareInterface
             try{
                 $tableGateway = new TableGateway($table, $this->adapter);
                 $sql = $tableGateway->getSql();
-                $sqlDelete = $sql->delete()->where($where);
+                if (in_array($prefix, $eavTablesWithwebsiteId)) {
+                    $sqlDelete = $sql->delete()->where($whereTierPrice);
+                }else{
+                    $sqlDelete = $sql->delete()->where($where);
+                }
                 $deletedRows += $tableGateway->deleteWith($sqlDelete);
                 $sqlQueries[] = $sql->getSqlStringForSqlObject($sqlDelete);
             }catch (\Exception $exception) {

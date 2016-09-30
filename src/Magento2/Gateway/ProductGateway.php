@@ -1368,7 +1368,7 @@ foreach ($websiteIds as $storeId=>$websiteId) {
                         // ToDo: Remove after Magento2 API bugs are fixed
                         if ($this->db && $localId) {
                             $this->db->correctPricesOnDefault($localId, $prices);
-                            $this->db->removeAllStoreSpecificInformationOnProducts($localId, $storeId);
+                            $this->db->removeAllStoreSpecificInformationOnProducts($localId, $storeId, $websiteId);
                         }
 }
                     }
