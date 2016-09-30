@@ -52,14 +52,16 @@ class Node extends AbstractNode
     {
         if (!isset($this->_api[$type])) {
             $this->_api[$type] = $this->getServiceLocator()->get('magento2_'.$type);
-            $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_INFO,
-                $this->getNodeLogPrefix().'init_api', 'Creating API instance '.$type,
-                array('type' => $type), array('node' => $this));
 
             $apiExists = $this->_api[$type]->init($this);
             if (!$apiExists) {
-                $this->_api[$type] = false;
+                $this->_api[$type] = FALSE;
             }
+
+            $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_INFO,
+                $this->getNodeLogPrefix().'init_api', 'Creating API instance '.$type,
+                array('type'=>$type, 'api exists'=>$apiExists, 'isset api'=>isset($this->_api[$type]))
+            );
         }
 
         return $this->_api[$type];
