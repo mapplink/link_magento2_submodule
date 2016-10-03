@@ -1064,7 +1064,7 @@ $storeIds = array(current($storeIds));
         $attributeCodes = array_unique(array_merge($attributesAlwaysUpdated, $customAttributes, $attributes));
 
         $data = array();
-        $success = FALSE;
+        $success = $skip = FALSE;
 
         if (count($originalData) == 0) {
             $this->getServiceLocator()->get('logService')
@@ -1279,43 +1279,52 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                             $restFaultMessage = $restFault->getMessage();
                             $restResult = FALSE;
 
-                            if ($restFaultMessage == 'The value of attribute "SKU" must be unique') {
-                                $this->getServiceLocator()->get('logService')
-                                    ->log(LogService::LEVEL_WARN,
-                                        $this->getLogCode().'_wr_duperr',
-                                        'Creating product '.$sku.' hit SKU duplicate fault',
-                                        array(),
-                                        array('entity'=>$product, 'rest fault'=>$restFault)
-                                    );
+                            switch ($restFaultMessage) {
+                                case 'The value of attribute "SKU" must be unique':
+                                    $this->getServiceLocator()->get('logService')
+                                        ->log(LogService::LEVEL_WARN,
+                                            $this->getLogCode().'_wr_duperr',
+                                            'Creating product '.$sku.' hit SKU duplicate fault',
+                                            array(),
+                                            array('entity'=>$product, 'rest fault'=>$restFault)
+                                        );
 
-                                $check = $this->restV1->get('products/'.$sku, array());
-                                if (!$check || !count($check)) {
-                                    $message = 'Magento2 complained duplicate SKU but we cannot find a duplicate!';
-                                    throw new MagelinkException($message);
+                                    $check = $this->restV1->get('products/'.$sku, array());
+                                    if (!$check || !count($check)) {
+                                        $message = 'Magento2 complained duplicate SKU but we cannot find a duplicate!';
+                                        throw new MagelinkException($message);
 
-                                }else{
-                                    $found = FALSE;
-                                    foreach ($check as $row) {
-                                        if ($row['sku'] == $sku) {
-                                            $found = TRUE;
+                                    }else{
+                                        $found = FALSE;
+                                        foreach ($check as $row) {
+                                            if ($row['sku'] == $sku) {
+                                                $found = TRUE;
 
-                                            $this->_entityService->linkEntity($nodeId, $product, $row['product_id']);
-                                            $this->getServiceLocator()->get('logService')
-                                                ->log(LogService::LEVEL_INFO,
-                                                    $this->getLogCode().'_wr_dupres',
-                                                    'Creating product '.$sku.' resolved SKU duplicate fault',
-                                                    array('local_id'=>$row['product_id']),
-                                                    array('entity'=>$product)
-                                                );
+                                                $this->_entityService->linkEntity($nodeId, $product, $row['product_id']);
+                                                $this->getServiceLocator()->get('logService')
+                                                    ->log(LogService::LEVEL_INFO,
+                                                        $this->getLogCode().'_wr_dupres',
+                                                        'Creating product '.$sku.' resolved SKU duplicate fault',
+                                                        array('local_id'=>$row['product_id']),
+                                                        array('entity'=>$product)
+                                                    );
+                                            }
+                                        }
+
+                                        if (!$found) {
+                                            $message = 'Magento2 found duplicate SKU '.$sku
+                                                .' but we could not replicate. Database fault?';
+                                            throw new MagelinkException($message);
                                         }
                                     }
-
-                                    if (!$found) {
-                                        $message = 'Magento2 found duplicate SKU '.$sku
-                                            .' but we could not replicate. Database fault?';
-                                        throw new MagelinkException($message);
-                                    }
-                                }
+                                    break;
+                                case 'Products "%1" and "%2" have the same set of attribute values.':
+                                    $skip = TRUE;
+                                    $restResult = NULL;
+                                    $message = 'Magento2 complained identical associated products on '.$sku.': '
+                                        .$restFaultMessage;
+                                    break;
+                                default:
                             }
                         }
 
@@ -1334,7 +1343,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                                 'Added product local id '.$localId.' for '.$sku.' ('.$nodeId.')',
                                 $logData
                             );
-                        }else{
+                        }elseif (!$skip) {
                             $message = 'Error creating product '.$sku.' in Magento2!';
                             throw new MagelinkException($message, 0, $restFault);
                         }
@@ -1343,7 +1352,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                     $logData['rest result'] = $restResult;
 
                     $successful = (bool) $restResult;
-                    $success = $success && $successful;
+                    $success &= $successful;
 
                     if ($successful) {
                         $logData = array('sku'=>$sku);
@@ -1371,6 +1380,8 @@ foreach ($websiteIds as $storeId=>$websiteId) {
                             $this->db->removeAllStoreSpecificInformationOnProducts($localId, $storeId, $websiteId);
                         }
 }
+                    }else{
+                        $success &= !$skip;
                     }
                 }
 
