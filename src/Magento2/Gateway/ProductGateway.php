@@ -15,6 +15,7 @@ use Entity\Entity;
 use Entity\Update;
 use Entity\Action;
 use Entity\Wrapper\Product;
+use Magento2\Api\RestCurl;
 use Magento2\Service\Magento2Service;
 use Log\Service\LogService;
 use Magelink\Exception\MagelinkException;
@@ -1276,7 +1277,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                             if (is_null($restFault = $exception->getPrevious())) {
                                 $restFault = $exception;
                             }
-                            $restFaultMessage = $restFault->getMessage();
+                            $restFaultMessage = trim(str_replace(RestCurl::ERROR_PREFIX, '', $restFault->getMessage()));
                             $restResult = FALSE;
 
                             switch ($restFaultMessage) {

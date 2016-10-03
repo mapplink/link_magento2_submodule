@@ -25,6 +25,9 @@ use Zend\Stdlib\Parameters;
 
 abstract class RestCurl implements ServiceLocatorAwareInterface
 {
+
+    const ERROR_PREFIX = 'REST ERROR: ';
+
     /** @var ServiceLocatorInterface $this->serviceLocator */
     protected $serviceLocator;
     /** @var Node|NULL $this->node */
@@ -329,7 +332,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
             }elseif (isset($response['message'])) {
                 $this->getServiceLocator()->get('logService')
                     ->log(LogService::LEVEL_ERROR, $logCode.'_err', 'REST ERROR: '.$response['message'], $logData);
-                throw new GatewayException('REST ERROR: '.$response['message']);
+                throw new GatewayException(self::ERROR_PREFIX.$response['message']);
             }
         }else{
             $logData = array();
