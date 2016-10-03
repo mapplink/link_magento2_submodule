@@ -900,7 +900,7 @@ class Db implements ServiceLocatorAwareInterface
                 try{
                     $tableGateway = new TableGateway($table, $this->adapter);
                     $sql = $tableGateway->getSql();
-                    $sqlUpdate = $sql->update()->set(array('value'=>$prices[$code]))->where($where);
+                    $sqlUpdate = $sql->update()->set(array('value'=>$prices[$code]))->where($attributeWhere);
                     $updatedRows += $tableGateway->updateWith($sqlUpdate);
                     $sqlQueries[] = $sql->getSqlStringForSqlObject($sqlUpdate);
                 }catch(\Exception $exception){

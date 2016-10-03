@@ -793,13 +793,22 @@ $storeIds = array(current($storeIds));
             $data = array('configurable_product_options' => array());
         }
 
+        if (isset($productData['price']) && isset($productData['special_price'])
+          && $productData['price'] == $productData['special_price']) {
+            $unsetSpecial = TRUE;
+            $productData['special_to_date'] = date('Y-m-s H:i:s');
+        }else{
+            $unsetSpecial = FALSE;
+        }
+
         foreach ($productData as $code=>$value) {
             $mappedCode = $this->getMagento2Service()->getMappedCode('product', $code);
             switch ($mappedCode) {
-                case 'price':
                 case 'special_price':
                 case 'special_from_date':
+                    $value = ($unsetSpecial ? NULL : $value);
                 case 'special_to_date':
+                case 'price':
                     $value = ($value ? $value : NULL);
                 case 'name':
                 case 'description':
@@ -914,7 +923,7 @@ $storeIds = array(current($storeIds));
      * @return array $restData
      * @throws \Magelink\Exception\MagelinkException
      */
-    protected function getDataForRestCall(Product $product, array $data, array $customAttributeCodes)
+    protected function getDataForRestCall(Product $product, array $data)
     {
         $nodeId = $this->_node->getNodeId();
         $sku = $product->getUniqueId();
@@ -924,25 +933,11 @@ $storeIds = array(current($storeIds));
             $restData = array();
 
         }else{
-            $specialPriceCodes = array('special_price', 'special_from_date', 'special_to_date');
-
-            if (isset($data['price']) && isset($data['special_price']) && $data['price'] == $data['special_price']) {
-                foreach ($specialPriceCodes as $code) {
-                    unset($data[$code]);
-                }
-                $data['special_to_date'] = date('Y-m-s H:i:s');
-                $specialPriceCodes = array('special_to_date');
-            }
-
             $restData = array_replace(array('name'=>$product->getData('name'), 'sku'=>$sku), $data);
-
-            $customAttributes = array();
-            $customAttributeCodes = array_merge($customAttributeCodes, $specialPriceCodes);
             $rootAttributes = array('id', 'sku', 'name', 'price', 'weight',
                 'attribute_set_id', 'status', 'type_id', 'visibility', 'created_at', 'updated_at');
 
             foreach ($data as $code=>$value) {
-                // $isCustomAttribute = in_array($code, $customAttributeCodes) || !in_array($code, $rootAttributes); ToDo: Remove after review
                 $isCustomAttribute = !in_array($code, $rootAttributes);
                 if (is_null($value)) {
                     unset($restData[$code]);
@@ -952,7 +947,7 @@ $storeIds = array(current($storeIds));
                     $this->getServiceLocator()->get('logService')
                         ->log(LogService::LEVEL_ERROR, $this->getLogCode().'_crat_err', $message,
                             array('type'=>$product->getTypeStr(), 'code'=>$code, 'value'=>$value),
-                            array('entity'=>$product, 'custom attributes'=>$customAttributeCodes)
+                            array('entity'=>$product, 'root attributes'=>$rootAttributes)
                         );
                 }elseif ($isCustomAttribute) {
                     $customAttributes[$code] = array('attribute_code'=>$code, 'value'=>$value);
@@ -1145,7 +1140,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                         unset($productData['special_to_date']);
                     }
 
-                    $restData = $this->getDataForRestCall($product, $productData, $customAttributes);
+                    $restData = $this->getDataForRestCall($product, $productData);
 
                     $logData = array(
                         'type'=>$product->getData('type'),
@@ -1216,7 +1211,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                                 }
 
                                 $putData = $this->getFilteredRestData(array(
-                                    'product'=>$this->getDataForRestCall($product, $productData, $customAttributes)
+                                    'product'=>$this->getDataForRestCall($product, $productData)
                                 ));
                                 $logData['put data'] = $putData;
 
@@ -1321,7 +1316,6 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                                     break;
                                 case 'Products "%1" and "%2" have the same set of attribute values.':
                                     $skip = TRUE;
-                                    $restResult = NULL;
                                     $message = 'Magento2 complained identical associated products on '.$sku.': '
                                         .$restFaultMessage;
                                     break;
@@ -1355,7 +1349,7 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                     $successful = (bool) $restResult;
                     $success &= $successful;
 
-                    if ($successful) {
+                    if ($successful && !$skip) {
                         $logData = array('sku'=>$sku);
 // TECHNICAL DEBT // ToDo: Remove hardcoding of all products being enabled on all websites
 //                        $websiteId = $websiteIds[$storeId];
@@ -1382,7 +1376,7 @@ foreach ($websiteIds as $storeId=>$websiteId) {
                         }
 }
                     }else{
-                        $success &= !$skip;
+                        $success = FALSE;
                     }
                 }
 
