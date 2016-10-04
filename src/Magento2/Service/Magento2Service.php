@@ -130,7 +130,7 @@ class Magento2Service implements ServiceLocatorAwareInterface
             }
         }
 
-        $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUGINTERNAL, 'mag_svc_cleanDat',
+        $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUGINTERNAL, 'mg2_svc_cleanDat',
             'Cleaned '.json_encode($originalData).' to '.json_encode($data).'.', array('to remove'=>array_keys($map)));
 
         return $data;
@@ -165,7 +165,7 @@ class Magento2Service implements ServiceLocatorAwareInterface
             $data = $this->cleanData($entityType, $data);
         }
 
-        $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUGINTERNAL, 'mag_svc_mapData',
+        $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUGINTERNAL, 'mg2_svc_mapData',
             'Mapped '.json_encode($originalData).' to '.json_encode($data).'.', array('map from=>to'=>$map));
 
         return $data;

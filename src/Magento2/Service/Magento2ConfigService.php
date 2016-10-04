@@ -75,7 +75,7 @@ class Magento2ConfigService extends ApplicationConfigService
 
         if ($storeId != (int) $storeId) {
             $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_ERROR,
-                'mag_csvc_bc_stid',
+                'mg2_csvc_bc_stid',
                 'Invalid call of getBaseCurrency.',
                 array('store id'=>$storeId, 'store currencies'=>$storeCurrencies)
             );
