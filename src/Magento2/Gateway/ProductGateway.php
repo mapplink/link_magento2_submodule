@@ -1133,18 +1133,19 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                 foreach ($storeIds as $storeId) {
                     $productData = $dataPerStore[$storeId];
 
-                    $prices = array();
-                    foreach ($priceAttributes as $code) {
-                        if (array_key_exists($code, $productData)) {
-                            $prices[$code] = $productData[$code];
-                        }
-                    }
-
                     if ($storeId != 0 || $this->getMagento2Service()->isStoreUsingDefaults($storeId)) {
                         unset($productData['special_price']);
                         unset($productData['special_from_date']);
                         unset($productData['special_to_date']);
                     }
+
+    // ToDo: Remove after Magento2 API bugs are fixed
+    $prices = array();
+    foreach ($priceAttributes as $code) {
+        if (array_key_exists($code, $productData)) {
+            $prices[$code] = $productData[$code];
+        }
+    }
 
                     $restData = $this->getDataForRestCall($product, $productData);
 
@@ -1375,11 +1376,11 @@ foreach ($websiteIds as $storeId=>$websiteId) {
                             );
                         }
 
-                        // ToDo: Remove after Magento2 API bugs are fixed
-                        if ($this->db && $localId) {
-                            $this->db->correctPricesOnDefault($localId, $prices);
-                            $this->db->removeAllStoreSpecificInformationOnProducts($localId, $storeId, $websiteId);
-                        }
+    // ToDo: Remove after Magento2 API bugs are fixed
+    if ($this->db && $localId) {
+        $this->db->correctPricesOnDefault($localId, $prices);
+        $this->db->removeAllStoreSpecificInformationOnProducts($localId, $storeId, $websiteId);
+    }
 }
                     }else{
                         $success = FALSE;
