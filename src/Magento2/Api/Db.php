@@ -902,7 +902,7 @@ class Db implements ServiceLocatorAwareInterface
                     $sql = $tableGateway->getSql();
 
                     $sqlSelect = $sql->select()->where($attributeWhere);
-                    $selectedRows[$localId] = $tableGateway->selectWith($sqlSelect);
+                    $selectedRows[$localId] = $tableGateway->selectWith($sqlSelect)->count();
 
                     if ($selectedRows[$localId] == 0) {
                         $values = array(
