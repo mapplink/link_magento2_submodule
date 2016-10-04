@@ -796,10 +796,10 @@ $storeIds = array(current($storeIds));
         if (isset($productData['price']) && isset($productData['special_price'])
           && $productData['price'] == $productData['special_price']) {
             $unsetSpecial = TRUE;
-            $productData['special_to_date'] = date('Y-m-s H:i:s');
+            $productData['special_to_date'] = date('Y-m-d H:i:s');
         }elseif (isset($productData['special_price']) && !isset($productData['special_from_date'])) {
             $unsetSpecial = FALSE;
-            $productData['special_from_date'] = date('Y-m-s H:i:s');
+            $productData['special_from_date'] = date('Y-m-d H:i:s');
         }elseif (isset($productData['special_price'])) {
             $unsetSpecial = FALSE;
         }else{
