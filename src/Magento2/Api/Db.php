@@ -902,7 +902,7 @@ class Db implements ServiceLocatorAwareInterface
                     $sql = $tableGateway->getSql();
 
                     $sqlSelect = $sql->select()->where($attributeWhere);
-                    $selectedRows[$localId] = $tableGateway->selectWith($sqlSelect)->count();
+                    $selectedRows[$attributeId] = $tableGateway->selectWith($sqlSelect)->count();
 
                     if ($selectedRows[$localId] == 0) {
                         $values = array(
@@ -913,11 +913,11 @@ class Db implements ServiceLocatorAwareInterface
                         );
                         $sqlInsert = $sql->insert()->columns(array_keys($values))->values($values);
                         $replacedRows += $tableGateway->insertWith($sqlInsert);
-                        $sqlQueries[$localId] = $sql->getSqlStringForSqlObject($sqlInsert);
+                        $sqlQueries[$attributeId] = $sql->getSqlStringForSqlObject($sqlInsert);
                     }else{
                         $sqlUpdate = $sql->update()->set(array('value'=>$prices[$code]))->where($attributeWhere);
                         $replacedRows += $tableGateway->updateWith($sqlUpdate);
-                        $sqlQueries[$localId] = $sql->getSqlStringForSqlObject($sqlUpdate);
+                        $sqlQueries[$attributeId] = $sql->getSqlStringForSqlObject($sqlUpdate);
                     }
                 }catch(\Exception $exception){
                     $this->getServiceLocator()->get('logService')->log(
