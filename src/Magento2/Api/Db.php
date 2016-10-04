@@ -889,7 +889,7 @@ class Db implements ServiceLocatorAwareInterface
         $where->equalTo('store_id', 0);
         $where->and->equalTo('entity_id', $localId);
 
-        $replacedRows = 0;
+        $replacedRowsTotal = 0;
         $sqlQueries = $selectedRows = array();
 
         foreach ($attributesByTable as $table=>$attributeIdsByCode) {
@@ -903,6 +903,7 @@ class Db implements ServiceLocatorAwareInterface
 
                     $sqlSelect = $sql->select()->where($attributeWhere);
                     $selectedRows[$attributeId] = $tableGateway->selectWith($sqlSelect)->count();
+                    $selectQuery = $sql->getSqlStringForSqlObject($sqlSelect);
 
                     if ($selectedRows[$localId] == 0) {
                         $values = array(
@@ -912,19 +913,22 @@ class Db implements ServiceLocatorAwareInterface
                             'value'=>$prices[$code]
                         );
                         $sqlInsert = $sql->insert()->columns(array_keys($values))->values($values);
-                        $replacedRows += $tableGateway->insertWith($sqlInsert);
-                        $sqlQueries[$attributeId] = $sql->getSqlStringForSqlObject($sqlInsert);
+                        $replacedRows = $tableGateway->insertWith($sqlInsert);
+                        $replaceQuery = $sql->getSqlStringForSqlObject($sqlInsert);
                     }else{
                         $sqlUpdate = $sql->update()->set(array('value'=>$prices[$code]))->where($attributeWhere);
-                        $replacedRows += $tableGateway->updateWith($sqlUpdate);
-                        $sqlQueries[$attributeId] = $sql->getSqlStringForSqlObject($sqlUpdate);
+                        $replacedRows = $tableGateway->updateWith($sqlUpdate);
+                        $replaceQuery = $sql->getSqlStringForSqlObject($sqlUpdate);
                     }
+                    $sqlQueries[$attributeId] = $replaceQuery;
+                    $replacedRowsTotal += $replacedRows;
                 }catch(\Exception $exception){
                     $this->getServiceLocator()->get('logService')->log(
                         LogService::LEVEL_DEBUG,
                         $logCode.'err',
                         'Error on updating default store data: '.$exception->getMessage(),
-                        array('table'=>$table, 'selected'=>$selectedRows, 'queries'=>$sqlQueries)
+                        array('table'=>$table, 'select query'=>$selectQuery, 'existing'=>$selectedRows[$attributeId],
+                            'replace query'=>$replaceQuery, 'replaced rows'=>$replacedRows)
                     );
                 }
             }
@@ -933,7 +937,7 @@ class Db implements ServiceLocatorAwareInterface
         $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUG, $logCode,
             ($replacedRows > 0 ? 'Updated default store data' : 'No default store data was updated'),
             array('local id'=>$localId, 'prices'=>$prices, 'attributesByTable'=>$attributesByTable,
-                'replaced rows'=>$replacedRows, 'selected rows'=>$selectedRows, 'queries'=>$sqlQueries));
+                'selected rows'=>$selectedRows, 'replaced rows'=>$replacedRowsTotal, 'queries'=>$sqlQueries));
 
         return (bool) $replacedRows;
     }
