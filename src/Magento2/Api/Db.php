@@ -879,6 +879,8 @@ class Db implements ServiceLocatorAwareInterface
     public function correctPricesOnDefault($localId, $prices)
     {
         $logCode = 'mg2_db_mv_prc';
+        $logData = array();
+
         // ToDo (maybe): Replace it with the attribute value id retrieved through the api
         $attributesByTable = array(
             'catalog_product_entity_datetime'=>array('special_from_date'=>76, 'special_from_date'=>77),
@@ -905,30 +907,37 @@ class Db implements ServiceLocatorAwareInterface
                     $selectedRows[$attributeId] = $tableGateway->selectWith($sqlSelect)->count();
                     $selectQuery = $sql->getSqlStringForSqlObject($sqlSelect);
 
-                    if ($selectedRows[$localId] == 0) {
-                        $values = array(
-                            'store_id'=>0,
-                            'entity_id'=>$localId,
-                            'attribute_id'=>$attributeId,
-                            'value'=>$prices[$code]
-                        );
-                        $sqlInsert = $sql->insert()->columns(array_keys($values))->values($values);
-                        $replacedRows = $tableGateway->insertWith($sqlInsert);
-                        $replaceQuery = $sql->getSqlStringForSqlObject($sqlInsert);
-                    }else{
-                        $sqlUpdate = $sql->update()->set(array('value'=>$prices[$code]))->where($attributeWhere);
-                        $replacedRows = $tableGateway->updateWith($sqlUpdate);
-                        $replaceQuery = $sql->getSqlStringForSqlObject($sqlUpdate);
+                    $isRowExisting = $selectedRows[$localId] > 0;
+                    if (!$isRowExisting) {
+                        try{
+                            $values = array(
+                                'store_id' => 0,
+                                'entity_id' => $localId,
+                                'attribute_id' => $attributeId,
+                                'value' => $prices[$code]
+                            );
+                            $sqlReplace = $sql->insert()->columns(array_keys($values))->values($values);
+                            $replacedRows = $tableGateway->insertWith($sqlReplace);
+                        }catch (\Exception $exception) {
+                            $logData['exception'] = $exception->getMessage();
+                            $isRowExisting = TRUE;
+                        }
                     }
-                    $sqlQueries[$attributeId] = $replaceQuery;
+
+                    if ($isRowExisting) {
+                        $sqlReplace = $sql->update()->set(array('value'=>$prices[$code]))->where($attributeWhere);
+                        $replacedRows = $tableGateway->updateWith($sqlReplace);
+                    }
+
                     $replacedRowsTotal += $replacedRows;
+                    $sqlQueries[$attributeId] = $sql->getSqlStringForSqlObject($sqlReplace);
                 }catch(\Exception $exception){
                     $this->getServiceLocator()->get('logService')->log(
                         LogService::LEVEL_DEBUG,
                         $logCode.'err',
                         'Error on updating default store data: '.$exception->getMessage(),
                         array('table'=>$table, 'select query'=>$selectQuery, 'existing'=>$selectedRows[$attributeId],
-                            'replace query'=>$replaceQuery, 'replaced rows'=>$replacedRows)
+                            'replace query'=>$sql->getSqlStringForSqlObject($sqlReplace))
                     );
                 }
             }
@@ -936,8 +945,8 @@ class Db implements ServiceLocatorAwareInterface
 
         $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_DEBUG, $logCode,
             ($replacedRows > 0 ? 'Updated default store data' : 'No default store data was updated'),
-            array('local id'=>$localId, 'prices'=>$prices, 'attributesByTable'=>$attributesByTable,
-                'selected rows'=>$selectedRows, 'replaced rows'=>$replacedRowsTotal, 'queries'=>$sqlQueries));
+            array_merge($logData, array('local id'=>$localId, 'prices'=>$prices, 'attributes'=>$attributesByTable,
+                'selected rows'=>$selectedRows, 'replaced rows'=>$replacedRowsTotal, 'queries'=>$sqlQueries)));
 
         return (bool) $replacedRows;
     }
