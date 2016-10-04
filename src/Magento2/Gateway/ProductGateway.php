@@ -932,6 +932,7 @@ $storeIds = array(current($storeIds));
     {
         $nodeId = $this->_node->getNodeId();
         $sku = $product->getUniqueId();
+        $customAttributes = array();
 
         if (!isset($sku)) {
             throw new GatewayException('SKU is essential for a synchronisation but missing.');
