@@ -797,8 +797,13 @@ $storeIds = array(current($storeIds));
           && $productData['price'] == $productData['special_price']) {
             $unsetSpecial = TRUE;
             $productData['special_to_date'] = date('Y-m-s H:i:s');
-        }else{
+        }elseif (isset($productData['special_price']) && !isset($productData['special_from_date'])) {
             $unsetSpecial = FALSE;
+            $productData['special_from_date'] = date('Y-m-s H:i:s');
+        }elseif (isset($productData['special_price'])) {
+            $unsetSpecial = FALSE;
+        }else{
+            $unsetSpecial = TRUE;
         }
 
         foreach ($productData as $code=>$value) {
