@@ -883,7 +883,7 @@ class Db implements ServiceLocatorAwareInterface
 
         // ToDo (maybe): Replace it with the attribute value id retrieved through the api
         $attributesByTable = array(
-            'catalog_product_entity_datetime'=>array('special_from_date'=>76, 'special_from_date'=>77),
+            'catalog_product_entity_datetime'=>array('special_from_date'=>76, 'special_to_date'=>77),
             'catalog_product_entity_decimal'=>array('price'=>74, 'special_price'=>75, 'msrp'=>117)
         );
 
