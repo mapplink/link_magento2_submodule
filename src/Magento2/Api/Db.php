@@ -903,38 +903,42 @@ class Db implements ServiceLocatorAwareInterface
                     $tableGateway = new TableGateway($table, $this->adapter);
                     $sql = $tableGateway->getSql();
 
-                    $sqlSelect = $sql->select()->where($attributeWhere);
-                    $selectedRows[$attributeId] = $tableGateway->selectWith($sqlSelect)->count();
-                    $selectQuery = $sql->getSqlStringForSqlObject($sqlSelect);
+                    if (is_null($prices[$code])) {
+                        // ToDo: Checked if this should trigger a delete?
+                    }else{
+                        $sqlSelect = $sql->select()->where($attributeWhere);
+                        $selectedRows[$attributeId] = $tableGateway->selectWith($sqlSelect)->count();
+                        $selectQuery = $sql->getSqlStringForSqlObject($sqlSelect);
 
-                    $isRowExisting = $selectedRows[$attributeId] > 0;
-                    if (!$isRowExisting) {
-                        try{
-                            $values = array(
-                                'store_id'=>0,
-                                'entity_id'=>$localId,
-                                'attribute_id'=>$attributeId,
-                                'value'=>$prices[$code]
-                            );
-                            $sqlReplace = $sql->insert()->columns(array_keys($values))->values($values);
-                            $replacedRows = $tableGateway->insertWith($sqlReplace);
-                        }catch (\Exception $exception) {
-                            $logData['exception'] = $exception->getMessage();
-                            if (strpos($logData['exception'], 'Duplicate entry') !== FALSE) {
-                                $isRowExisting = TRUE;
-                            }else{
-                                throw $exception;
+                        $isRowExisting = $selectedRows[$attributeId] > 0;
+                        if (!$isRowExisting) {
+                            try{
+                                $values = array(
+                                    'store_id'=>0,
+                                    'entity_id'=>$localId,
+                                    'attribute_id'=>$attributeId,
+                                    'value'=>$prices[$code]
+                                );
+                                $sqlReplace = $sql->insert()->columns(array_keys($values))->values($values);
+                                $replacedRows = $tableGateway->insertWith($sqlReplace);
+                            }catch (\Exception $exception) {
+                                $logData['exception'] = $exception->getMessage();
+                                if (strpos($logData['exception'], 'Duplicate entry') !== FALSE) {
+                                    $isRowExisting = TRUE;
+                                }else{
+                                    throw $exception;
+                                }
                             }
                         }
-                    }
 
-                    if ($isRowExisting) {
-                        $sqlReplace = $sql->update()->set(array('value'=>$prices[$code]))->where($attributeWhere);
-                        $replacedRows = $tableGateway->updateWith($sqlReplace);
-                    }
+                        if ($isRowExisting) {
+                            $sqlReplace = $sql->update()->set(array('value'=>$prices[$code]))->where($attributeWhere);
+                            $replacedRows = $tableGateway->updateWith($sqlReplace);
+                        }
 
-                    $replacedRowsTotal += $replacedRows;
-                    $sqlQueries[$attributeId] = $sql->getSqlStringForSqlObject($sqlReplace);
+                        $replacedRowsTotal += $replacedRows;
+                        $sqlQueries[$attributeId] = $sql->getSqlStringForSqlObject($sqlReplace);
+                    }
                 }catch(\Exception $exception){
                     $this->getServiceLocator()->get('logService')->log(
                         LogService::LEVEL_DEBUG,
