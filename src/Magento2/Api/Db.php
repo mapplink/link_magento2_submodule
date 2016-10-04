@@ -907,20 +907,24 @@ class Db implements ServiceLocatorAwareInterface
                     $selectedRows[$attributeId] = $tableGateway->selectWith($sqlSelect)->count();
                     $selectQuery = $sql->getSqlStringForSqlObject($sqlSelect);
 
-                    $isRowExisting = $selectedRows[$localId] > 0;
+                    $isRowExisting = $selectedRows[$attributeId] > 0;
                     if (!$isRowExisting) {
                         try{
                             $values = array(
-                                'store_id' => 0,
-                                'entity_id' => $localId,
-                                'attribute_id' => $attributeId,
-                                'value' => $prices[$code]
+                                'store_id'=>0,
+                                'entity_id'=>$localId,
+                                'attribute_id'=>$attributeId,
+                                'value'=>$prices[$code]
                             );
                             $sqlReplace = $sql->insert()->columns(array_keys($values))->values($values);
                             $replacedRows = $tableGateway->insertWith($sqlReplace);
                         }catch (\Exception $exception) {
                             $logData['exception'] = $exception->getMessage();
-                            $isRowExisting = TRUE;
+                            if (strpos($logData['exception'], 'Duplicate entry') !== FALSE) {
+                                $isRowExisting = TRUE;
+                            }else{
+                                throw $exception;
+                            }
                         }
                     }
 
