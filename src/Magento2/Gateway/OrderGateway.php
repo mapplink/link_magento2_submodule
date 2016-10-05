@@ -375,6 +375,17 @@ class OrderGateway extends AbstractGateway
         $localId = isset($orderData['entity_id']) ? $orderData['entity_id'] : $orderData['order_id'];
         $createdAtTimestamp = strtotime($orderData['created_at']);
 
+        if (isset($orderData['base_to_order_rate'])) {
+            $baseToOrderRate = $orderData['base_to_order_rate'];
+        }else{
+            $baseToOrderRate = 1;
+            $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_ERROR,
+                $this->getLogCode().'_btor_err',
+                'Base to order rate is not defined. Set to 1 instead.',
+                array('order unique'=>$uniqueId, 'order data'=>$orderData)
+            );
+        }
+
         $data = array(
             'customer_email'=>array_key_exists('customer_email', $orderData)
                 ? $orderData['customer_email'] : NULL,
@@ -385,7 +396,7 @@ class OrderGateway extends AbstractGateway
             'status'=>$status,
             'placed_at'=>date('Y-m-d H:i:s', strtotime($correctionHours, $createdAtTimestamp)),
             'grand_total'=>$orderData['base_grand_total'],
-            'base_to_currency_rate'=>$orderData['base_to_order_rate'],
+            'base_to_currency_rate'=>$baseToOrderRate,
             'weight_total'=>(array_key_exists('weight', $orderData)
                 ? $orderData['weight'] : 0),
             'discount_total'=>(array_key_exists('base_discount_amount', $orderData)
