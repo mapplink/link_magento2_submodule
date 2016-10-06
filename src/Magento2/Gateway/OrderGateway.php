@@ -1004,7 +1004,9 @@ class OrderGateway extends AbstractGateway
                     ($this->_node->isMultiStore() ? $orderData['store_id'] : 0),
                     $uniqueId
                 );
-            if (!$entity) {
+
+            // Item containing the parent item information are simple duplicates of the configurable
+            if (!$entity && !isset($item['parent_item'])) {
                 $localId = $item['item_id'];
                 $product = $this->_entityService->loadEntity($this->_node->getNodeId(), 'product', 0, $item['sku']);
                 $data = array(
