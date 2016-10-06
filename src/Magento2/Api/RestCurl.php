@@ -163,7 +163,6 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
     {
         $logData = array(
             'request type'=>$this->requestType,
-            'options'=>$this->curlOptions,
             'curl info'=>curl_getinfo($this->curlHandle)
         );
 
