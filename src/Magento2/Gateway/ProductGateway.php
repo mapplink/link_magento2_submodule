@@ -1346,7 +1346,8 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                                 $logData
                             );
                         }elseif (!$skip) {
-                            $message = 'Error creating product '.$sku.' in Magento2!';
+                            $message = 'Error creating product '.$sku.' in Magento2!'
+                                .(isset($restFaultMessage) ? '('.$restFaultMessage.')' : '');
                             throw new MagelinkException($message, 0, $restFault);
                         }
                     }
