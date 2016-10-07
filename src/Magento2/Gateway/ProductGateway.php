@@ -1326,7 +1326,13 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                                     $message = 'Magento2 complained identical associated products on '.$sku.': '
                                         .$restFaultMessage;
                                     break;
+                                case 'Product with id "%1" does not contain required attribute "%2".':
+                                    $skip = TRUE;
+                                    $message = 'Magento2 complained about not proper configured associated products on '
+                                        .$sku.': '.$restFaultMessage;
+                                    break;
                                 default:
+                                    // Don't do anything. Let the final check on the rest result decide what to do.
                             }
                         }
 
