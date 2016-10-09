@@ -9,7 +9,12 @@ return array(
         <store id: 0 for default>=>array(<currency identifier>, ...)
     ),
     'store_map'=>array(
-         <store id> => array(<entity type> => array(<magento2 code> => <magelink code>, ...))
-         <-store id> => array(<entity type> => array(<magento2 code> => <magento2 code>_default, ...)) // for write and clean up purpose only
+         <store id> => array(<entity type> => array(<base magento2 code> => <store specific magelink code>, ...))
+         <store id> => array(<entity type> => array(<base magento2 code> => <magento2 code>_default, ...)) // for write and clean up purpose only
+    ),
+    'entity_variables'=>array(
+        'product'=>array(
+            <magento2 attribute set id> => array(<magento2 attribute code>, ...)
+        )
     )
 );

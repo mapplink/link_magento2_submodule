@@ -141,4 +141,22 @@ class Magento2ConfigService extends ApplicationConfigService
         return $map;
     }
 
+    /**
+     * @return array $entityVariables
+     */
+    protected function getEntityVariables()
+    {
+        return $this->getConfigData('entity_variables');
+    }
+
+    /**
+     * @param int $attributeSetId
+     * @return array $productVariables
+     */
+    public function getProductAttributeVariables($attributeSetId)
+    {
+        $productVariablesPerAttributeSetId = $this->getArrayKeyData($this->getEntityVariables(), 'product');
+        return $this->getArrayKeyData($productVariablesPerAttributeSetId, $attributeSetId);
+    }
+
 }
