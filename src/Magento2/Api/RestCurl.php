@@ -329,6 +329,13 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
                 $response = $response['items'];
 
             }elseif (isset($response['message'])) {
+                if ($response['parameters']) {
+                    foreach ($response['parameters'] as $key=>$replace) {
+                        $search = '"%'.(++$key).'"';
+                        $replace = '`'.$replace.'`';
+                        $response['message'] = str_replace($search, $replace, $response['message']);
+                    }
+                }
                 $this->getServiceLocator()->get('logService')
                     ->log(LogService::LEVEL_ERROR, $logCode.'_err', 'REST ERROR: '.$response['message'], $logData);
                 throw new GatewayException(self::ERROR_PREFIX.$response['message']);
