@@ -38,8 +38,8 @@ class ProductGateway extends AbstractGateway
     protected $attributeOptions =array();
 
     // ToDo: Move mapping to config
-    /** @var array self::$colourById */
-    protected static $colourById = array(93=>"Alabaster", 94=>"Am G/Gran", 95=>"Am Gr/Blk", 96=>"Am Grn", 97=>"Am/Car",
+    /** @var array self::$colorById */
+    protected static $colorById = array(93=>"Alabaster", 94=>"Am G/Gran", 95=>"Am Gr/Blk", 96=>"Am Grn", 97=>"Am/Car",
         98=>"Am/Des", 99=>"Aniseed", 100=>"Army", 101=>"Army Gran", 102=>"Army Green", 103=>"Ash", 104=>"Beige", 105=>"Black",
         106=>"Black Croc", 107=>"Black Magic", 108=>"Black Marle", 109=>"Black Pony", 110=>"Black Sheep", 111=>"Black Twill",
         112=>"Black/Black", 113=>"Black/Blue", 114=>"Black/Brass", 115=>"Black/Burg.Gingham", 116=>"Black/Burgundy",
@@ -190,18 +190,18 @@ class ProductGateway extends AbstractGateway
      * @param $colourId
      * @return string|NULL $colourString
      */
-    public static function getColour($colourId)
+    public static function getColor($colourId)
     {
-        return self::getMappedString('colour', (int) $colourId);
+        return self::getMappedString('color', (int) $colourId);
     }
 
     /**
      * @param int $colourString
      * @return int|NULL $colourId
      */
-    public static function getColourId($colourString)
+    public static function getColorId($colourString)
     {
-        return self::getMappedId('colour', $colourString);
+        return self::getMappedId('color', $colourString);
     }
 
     /**
@@ -222,54 +222,47 @@ class ProductGateway extends AbstractGateway
         return self::getMappedId('size', $sizeString);
     }
 
-    public function getAttributeOptions($code)
+    /**
+     * @param int $attributeSetId
+     * @param string $code
+     * @return array $attributeOptions
+     */
+    public function getAttributeOptions($attributeSetId, $code)
     {
         if (is_null($this->attributeOptions[$code])) {
-            $this->attributeOptions[$code] = array(
-                array(
-                    "label"=>"string",
-                    "value"=>"string",
-                    "sortOrder"=>0,
-                    "isDefault"=>true,
-                    "storeLabels"=>array(
-                        array(
-                            "storeId"=>0,
-                            "label"=>"string"
-                        )
-                    )
-                )
-            );
+            $attributes = $this->restV1->get('products/attribute-sets/'.$code.'/options');
+
+            foreach ($attributes as $attributeData) {
+                if ($attributeData['attribute_code'] = $code) {
+                    $this->attributeOptions[$code] = array(
+                        'attribute_id'=>$attributeData['attribute_id'],
+                        'label'=>$code,
+                        'position'=>'0',
+                        'values'=>array()
+                    );
+
+                    foreach ($attributeData['options'] as $option) {
+                        if ($option['value']) {
+                            $this->attributeOptions[$code]['values'][] = array('value_index' => $option['value']);
+                        }
+                    }
+                }
+            }
         }
 
         return $this->attributeOptions[$code];
     }
 
     /**
+     * @param int $attributeSetId
      * @param array $configurableProductOptionLabels
      * @return array $configurableProductOptions
      */
-    protected function getConfigurableProductOptions(array $configurableProductOptionLabels)
+    protected function getConfigurableProductOptions($attributeSetId, array $configurableProductOptionLabels)
     {
-$colorValues = array(); foreach(array_keys(self::$colourById) as $id) { $colorValues[] = array("value_index"=>$id); }
-$sizeValues = array(); foreach(array_keys(self::$sizeById) as $id) { $sizeValues[] = array("value_index"=>$id); }
-return array(
-    array(
-        "attribute_id"=>90,
-        "label"=>"color",
-        "position"=>"0",
-        "values"=>$colorValues
-    ),
-    array(
-        "attribute_id"=>136,
-        "label"=>"size",
-        "position"=>"0",
-        "values"=>$sizeValues
-    )
-);
-
         $configurableProductOptions = array();
         foreach ($configurableProductOptionLabels as $attributeCode) {
-            $configurableProductOptions[] = $this->getAttributeOptions($attributeCode);
+            $configurableProductOptions[] = $this->getAttributeOptions($attributeSetId, $attributeCode);
         }
 
         return $configurableProductOptions;
@@ -768,7 +761,7 @@ $storeIds = array(current($storeIds));
         }
 
         if (isset($rawData['color'])) {
-            $data['color'] = self::getColour($rawData['color']);
+            $data['color'] = self::getColor($rawData['color']);
         }
         if (isset($rawData['size'])) {
             $data['size'] = self::getSize($rawData['size']);
@@ -791,6 +784,8 @@ $storeIds = array(current($storeIds));
 
         if ($isConfigurable) {
             $data = array('configurable_product_options' => array());
+            /** @var Product $associatedProduct */
+            $associatedProduct = current($product->getConfigurableSimples($this->_node->getNodeId()));
         }
 
         if (isset($productData['price']) && isset($productData['special_price'])
@@ -841,17 +836,14 @@ $storeIds = array(current($storeIds));
                     $data['visibility'] = ($value == 1 ? 4 : 1);
                     break;
                 case 'color':
-                    if ($isConfigurable) {
-                        $data['configurable_product_options'][] = $mappedCode;
-                    }else{
-                        $data['color'] = self::getColourId($value);
-                    }
-                    break;
                 case 'size':
                     if ($isConfigurable) {
-                        $data['configurable_product_options'][] = $mappedCode;
+                        if ($associatedProduct->getData($mappedCode, NULL)) {
+                            $data['configurable_product_options'][] = $mappedCode;
+                        }
                     }else{
-                        $data['size'] = self::getSizeId($value);
+                        $method = 'get'.str_replace(' ', '', ucwords(str_replace('_', ' ', strtolower($mappedCode))));
+                        $data[$mappedCode] = self::$method($value);
                     }
                     break;
                 case 'configurable_sku':
@@ -963,7 +955,7 @@ $storeIds = array(current($storeIds));
 
             if (!isset($data['type_id']) || $data['type_id'] == Product::TYPE_SIMPLE) {
                 $urlKey = $restData['name'].'-'.$sku
-                    .(isset($data['color']) ? '-'.self::getColour($data['color']) : '')
+                    .(isset($data['color']) ? '-'.self::getColor($data['color']) : '')
                     .(isset($data['size']) ? '-'.self::getSize($data['size']) : '');
                 $customAttributes['url_key'] = array('attribute_code'=>'url_key', 'value'=>$urlKey);
             }
@@ -999,7 +991,10 @@ $storeIds = array(current($storeIds));
 
                 if (isset($data['configurable_product_options'])) {
                     $restData['extension_attributes']['configurable_product_options'] =
-                        $this->getConfigurableProductOptions($data['configurable_product_options']);
+                        $this->getConfigurableProductOptions(
+                            $data['attribute_set_id'],
+                            $data['configurable_product_options']
+                        );
                 }
             }
             unset($restData['configurable_product_options']);
