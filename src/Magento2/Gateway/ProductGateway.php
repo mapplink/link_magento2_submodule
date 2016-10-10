@@ -14,12 +14,12 @@ namespace Magento2\Gateway;
 use Entity\Entity;
 use Entity\Update;
 use Entity\Action;
+use Entity\Service\EntityService;
 use Entity\Wrapper\Product;
 use Magento2\Api\RestCurl;
 use Magento2\Service\Magento2Service;
 use Log\Service\LogService;
 use Magelink\Exception\MagelinkException;
-use Magelink\Exception\SyncException;
 use Magelink\Exception\NodeException;
 use Magelink\Exception\GatewayException;
 
@@ -786,6 +786,9 @@ $storeIds = array(current($storeIds));
             $data = array('configurable_product_options' => array());
             /** @var Product $associatedProduct */
             $associatedProduct = current($product->getConfigurableSimples($this->_node->getNodeId()));
+            /** @var EntityService $entityService */
+            $entityService = $this->getServiceLocator()->get('entityService');
+            $entityService->reloadEntity($associatedProduct);
         }
 
         if (isset($productData['price']) && isset($productData['special_price'])
