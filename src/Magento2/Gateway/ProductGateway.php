@@ -966,7 +966,7 @@ $storeIds = array(current($storeIds));
                 $productClass = $product->getData('product_class', 'default');
 
                 $isNameMatching = strtolower($setName) == strtolower($productClass);
-                $hasProductType = $set['entity_type_id'] == 4;
+                $hasProductType = ($set['entity_type_id'] == 4);
 
                 if ($isNameMatching && $hasProductType) {
                     $restData['attribute_set_id'] = $setId;
@@ -993,7 +993,7 @@ $storeIds = array(current($storeIds));
                 if (isset($data['configurable_product_options'])) {
                     $restData['extension_attributes']['configurable_product_options'] =
                         $this->getConfigurableProductOptions(
-                            $data['attribute_set_id'],
+                            $restData['attribute_set_id'],
                             $data['configurable_product_options']
                         );
                 }
