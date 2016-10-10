@@ -841,7 +841,7 @@ $storeIds = array(current($storeIds));
                 case 'color':
                 case 'size':
                     if (!$isConfigurable) {
-                        $method = 'get'.str_replace(' ', '', ucwords(str_replace('_', ' ', strtolower($mappedCode))));
+                        $method = 'get'.str_replace(' ', '', ucwords(str_replace('_', ' ', strtolower($mappedCode)))).'Id';
                         $data[$mappedCode] = self::$method($value);
                     }elseif ($associatedProduct->getData($mappedCode, NULL)) {
                         $data['configurable_product_options'][] = $mappedCode;
