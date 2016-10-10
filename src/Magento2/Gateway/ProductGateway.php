@@ -230,7 +230,7 @@ class ProductGateway extends AbstractGateway
     public function getAttributeOptions($attributeSetId, $code)
     {
         if (is_null($this->attributeOptions[$code])) {
-            $attributes = $this->restV1->get('products/attribute-sets/'.$attributeSetId.'/options');
+            $attributes = $this->restV1->get('products/attribute-sets/'.$attributeSetId.'/attributes');
 
             foreach ($attributes as $attributeData) {
                 if ($attributeData['attribute_code'] = $code) {
