@@ -840,13 +840,11 @@ $storeIds = array(current($storeIds));
                     break;
                 case 'color':
                 case 'size':
-                    if ($isConfigurable) {
-                        if ($associatedProduct->getData($mappedCode, NULL)) {
-                            $data['configurable_product_options'][] = $mappedCode;
-                        }
-                    }else{
+                    if (!$isConfigurable) {
                         $method = 'get'.str_replace(' ', '', ucwords(str_replace('_', ' ', strtolower($mappedCode))));
                         $data[$mappedCode] = self::$method($value);
+                    }elseif ($associatedProduct->getData($mappedCode, NULL)) {
+                        $data['configurable_product_options'][] = $mappedCode;
                     }
                     break;
                 case 'configurable_sku':
