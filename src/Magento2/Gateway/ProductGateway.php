@@ -187,21 +187,21 @@ class ProductGateway extends AbstractGateway
     }
 
     /**
-     * @param $colourId
-     * @return string|NULL $colourString
+     * @param $colorId
+     * @return string|NULL $colorString
      */
-    public static function getColor($colourId)
+    public static function getColor($colorId)
     {
-        return self::getMappedString('color', (int) $colourId);
+        return self::getMappedString('color', (int) $colorId);
     }
 
     /**
-     * @param int $colourString
-     * @return int|NULL $colourId
+     * @param int $colorString
+     * @return int|NULL $colorId
      */
-    public static function getColorId($colourString)
+    public static function getColorId($colorString)
     {
-        return self::getMappedId('color', $colourString);
+        return self::getMappedId('color', $colorString);
     }
 
     /**
