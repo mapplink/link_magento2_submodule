@@ -944,7 +944,10 @@ $storeIds = array(current($storeIds));
                 $isCustomAttribute = !in_array($code, $rootAttributes);
                 if (is_null($value)) {
                     unset($restData[$code]);
-                }elseif ($isCustomAttribute && is_array($data[$code])) {
+                }elseif ($isCustomAttribute && !is_array($data[$code])) {
+                    $customAttributes[$code] = array('attribute_code'=>$code, 'value'=>$value);
+                    unset($restData[$code]);
+                }elseif ($isCustomAttribute && $code != 'configurable_product_options') {
                     // ToDo(maybe) : Implement
                     $message = 'This gateway doesn\'t support multi data custom attributes yet: '.$code.'.';
                     $this->getServiceLocator()->get('logService')
@@ -952,9 +955,6 @@ $storeIds = array(current($storeIds));
                             array('type'=>$product->getTypeStr(), 'code'=>$code, 'value'=>$value),
                             array('entity'=>$product, 'root attributes'=>$rootAttributes)
                         );
-                }elseif ($isCustomAttribute) {
-                    $customAttributes[$code] = array('attribute_code'=>$code, 'value'=>$value);
-                    unset($restData[$code]);
                 }
             }
 
