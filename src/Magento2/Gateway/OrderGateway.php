@@ -33,6 +33,7 @@ class OrderGateway extends AbstractGateway
     const MAGENTO_STATUS_PENDING_ALIPAY = 'pending_alipay';
     const MAGENTO_STATUS_PENDING_ALIPAY_NEW = 'new';
     const MAGENTO_STATUS_PENDING_DPS = 'pending_dps';
+    const MAGENTO_STATUS_PENDING_DPS_UNPAID = 'paymentexpress_unpaid';
     const MAGENTO_STATUS_PENDING_OGONE = 'pending_ogone';
     const MAGENTO_STATUS_PENDING_PAYMENT = 'pending_payment';
     const MAGENTO_STATUS_PENDING_PAYPAL = 'pending_paypal';
@@ -45,6 +46,7 @@ class OrderGateway extends AbstractGateway
         self::MAGENTO_STATUS_PENDING_ALIPAY,
         self::MAGENTO_STATUS_PENDING_ALIPAY_NEW,
         self::MAGENTO_STATUS_PENDING_DPS,
+        self::MAGENTO_STATUS_PENDING_DPS_UNPAID,
         self::MAGENTO_STATUS_PENDING_OGONE,
         self::MAGENTO_STATUS_PENDING_PAYMENT,
         self::MAGENTO_STATUS_PENDING_PAYPAL,
