@@ -833,14 +833,14 @@ $storeIds = array(current($storeIds));
                         // Ignore status
                         unset($data['status']);
                     }else{
-                        $data['status'] = ($value == 1 ? 1 : 2);
+                        $data['status'] = ($value ? ($value == 1 ? 1 : 2) : NULL);
                     }
                     break;
                 case 'taxable':
                     $data['tax_class_id'] = ($value == 1 ? 2 : 1);
                     break;
                 case 'visible':
-                    $data['visibility'] = ($value == 1 ? 4 : 1);
+                    $data['visibility'] = ($value ? ($value == 1 ? 4 : 1) : NULL);
                     break;
                 case 'color':
                 case 'size':
