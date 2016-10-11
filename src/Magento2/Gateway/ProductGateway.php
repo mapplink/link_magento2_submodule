@@ -35,7 +35,7 @@ class ProductGateway extends AbstractGateway
     /** @var array $this->attributeSets */
     protected $attributeSets;
     /** @var array $this->attributeOptions */
-    protected $attributeOptions =array();
+    protected $attributeOptions = array();
 
     // ToDo: Move mapping to config
     /** @var array self::$colorById */
@@ -229,7 +229,7 @@ class ProductGateway extends AbstractGateway
      */
     public function getAttributeOptions($attributeSetId, $code)
     {
-        if (is_null($this->attributeOptions[$code])) {
+        if (!isset($this->attributeOptions[$code])) {
             $attributes = $this->restV1->get('products/attribute-sets/'.$attributeSetId.'/attributes');
 
             foreach ($attributes as $attributeData) {
