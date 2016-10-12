@@ -805,7 +805,7 @@ $storeIds = array(current($storeIds));
             $productData['special_from_date'] = date('Y-m-d H:i:s');
         }
         if (isset($productData['special_price']) && !isset($productData['special_to_date'])) {
-            $productData['special_from_date'] = date('Y-m-d H:i:s', time() + 86400 * 146097);
+            $productData['special_to_date'] = date('Y-m-d H:i:s', time() + 86400 * 146097);
         }
 
         foreach ($productData as $code=>$value) {
