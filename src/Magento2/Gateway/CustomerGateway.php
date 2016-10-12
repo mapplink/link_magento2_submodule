@@ -459,7 +459,7 @@ class CustomerGateway extends AbstractGateway
      */
     public function writeAction(\Entity\Action $action)
     {
-        return FALSE;
+        return NULL;
 
 /*
         $entity = $action->getEntity();

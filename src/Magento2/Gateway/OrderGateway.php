@@ -1180,7 +1180,7 @@ class OrderGateway extends AbstractGateway
     public function writeAction(\Entity\Action $action)
     {
         // TECHNICAL DEBT // ToDo: Check and tweak method
-        return;
+        return NULL;
 
         /** @var \Entity\Wrapper\Order $order */
         $order = $action->getEntity();

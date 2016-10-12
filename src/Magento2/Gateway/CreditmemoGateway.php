@@ -564,7 +564,7 @@ class CreditmemoGateway extends AbstractGateway
      */
     public function writeAction(\Entity\Action $action)
     {
-        return FALSE;
+        return NULL;
 
         $entity = $action->getEntity();
         $localId = $this->_entityService->getLocalId($this->_node->getNodeId(), $entity);
