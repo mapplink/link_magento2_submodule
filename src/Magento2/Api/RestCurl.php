@@ -329,7 +329,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
                 $response = $response['items'];
 
             }elseif (isset($response['message'])) {
-                if ($response['parameters']) {
+                if (isset($response['parameters']) && is_array($response['parameters'])) {
                     foreach ($response['parameters'] as $key=>$replace) {
                         $search = '"%'.(++$key).'"';
                         $replace = '`'.$replace.'`';
