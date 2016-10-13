@@ -1197,13 +1197,14 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                             $logCode = $this->getLogCode().'_wr_restput';
 
                             try{
-                                if ($type == Update::TYPE_UPDATE) {
+                                // Disabled this functionality to guarantee a full update
+                                /* if ($type == Update::TYPE_UPDATE) {
                                     foreach ($productData as $attributeCode=>$attributeValue) {
                                         if (!in_array($attributeCode, $attributeCodes)) {
                                             unset($productData[$attributeCode]);
                                         }
                                     }
-                                }
+                                } */
 
                                 if (count($restData) == 0) {
                                     // ToDo: Check if products exists remotely
