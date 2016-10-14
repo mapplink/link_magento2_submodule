@@ -958,12 +958,12 @@ $storeIds = array(current($storeIds));
                 }
             }
 
+            $urlKey = $restData['name'].'-'.$sku;
             if (!isset($data['type_id']) || $data['type_id'] == Product::TYPE_SIMPLE) {
-                $urlKey = $restData['name'].'-'.$sku
-                    .(isset($data['color']) ? '-'.self::getColor($data['color']) : '')
+                $urlKey .= (isset($data['color']) ? '-'.self::getColor($data['color']) : '')
                     .(isset($data['size']) ? '-'.self::getSize($data['size']) : '');
-                $customAttributes['url_key'] = array('attribute_code'=>'url_key', 'value'=>$urlKey);
             }
+            $customAttributes['url_key'] = array('attribute_code'=>'url_key', 'value'=>$urlKey);
 
             foreach ($this->attributeSets as $setId=>$set) {
                 $setName = $set['attribute_set_name'];
