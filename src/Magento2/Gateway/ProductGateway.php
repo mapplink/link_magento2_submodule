@@ -1218,9 +1218,8 @@ foreach ($storeDataByStoreId as $storeId=>$storeData) { $websiteIds[$storeId] = 
                                     $type = Update::TYPE_UPDATE;
                                 }
 
-                                $putData = $this->getFilteredRestData(array(
-                                    'product'=>$this->getDataForRestCall($product, $productData)
-                                ));
+                                $putData = $this->getFilteredRestData(array('product'=>$restData));
+                                unset($putData['product']['custom_attributes']['url_key']);
                                 $logData['put data'] = $putData;
 
                                 $restResult = $this->restV1->put('products/'.$sku, $putData);
