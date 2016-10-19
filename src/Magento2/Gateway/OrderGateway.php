@@ -711,13 +711,16 @@ class OrderGateway extends AbstractGateway
                 $orders = $this->restV1->get('orders', array('filter'=>$filter));
 
                 $orderIncrementIds = array();
-                foreach ($orders as $order) {
-                    $orderIncrementIds = $order['increment_id'];
+                if (is_null($orders)) {
+                    throw new GatewayException('Authorisation failed.');
+                }else{
+                    foreach ($orders as $order) {
+                        $orderIncrementIds[] = $order['increment_id'];
+                    }
                 }
 
                 $this->getServiceLocator()->get('logService')
-                    ->log(LogService::LEVEL_INFO,
-                        $this->getLogCode().'_rest_list',
+                    ->log(LogService::LEVEL_INFO, $this->getLogCode().'_rest_list',
                         'Retrieved salesOrderList updated from '.$this->getLastRetrieveDate(),
                         array('updated_at'=>$this->getLastRetrieveDate(), 'orders'=>$orderIncrementIds)
                     );

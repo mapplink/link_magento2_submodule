@@ -337,8 +337,10 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
                     }
                 }
                 $this->getServiceLocator()->get('logService')
-                    ->log(LogService::LEVEL_ERROR, $logCode.'_err', 'REST ERROR: '.$response['message'], $logData);
+                    ->log(LogService::LEVEL_ERROR, $logCode.'_err', self::ERROR_PREFIX.$response['message'], $logData);
                 throw new GatewayException(self::ERROR_PREFIX.$response['message']);
+            }elseif (!is_array($response)) {
+                throw new GatewayException(self::ERROR_PREFIX.'Response is neither an array nor could it be transformed');
             }
         }else{
             $logData = array();
