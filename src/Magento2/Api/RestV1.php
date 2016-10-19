@@ -3,7 +3,6 @@
  * Implements SOAP access to Magento2
  * @category Magento2
  * @package Magento2\Api
- * @author Matt Johnston
  * @author Andreas Gerhards <andreas@lero9.co.nz>
  * @copyright Copyright (c) 2014 LERO9 Ltd.
  * @license Commercial - All Rights Reserved
