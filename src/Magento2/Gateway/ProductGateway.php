@@ -30,6 +30,8 @@ class ProductGateway extends AbstractGateway
     const GATEWAY_ENTITY = 'product';
     const GATEWAY_ENTITY_CODE = 'p';
 
+    const MAGENTO_PRODUCT_TYPE_ID = 4;
+
     /** @var Magento2Service $this->magento2Service */
     protected $magento2Service = NULL;
     /** @var array $this->attributeSets */
@@ -970,12 +972,20 @@ $storeIds = array(current($storeIds));
                 $productClass = $product->getData('product_class', 'default');
 
                 $isNameMatching = strtolower($setName) == strtolower($productClass);
-                $hasProductType = ($set['entity_type_id'] == 4);
+                $hasProductType = ($set['entity_type_id'] == self::MAGENTO_PRODUCT_TYPE_ID);
 
                 if ($isNameMatching && $hasProductType) {
                     $restData['attribute_set_id'] = $setId;
                     break;
                 }
+            }
+
+            if (!isset($restData['attribute_set_id'])) {
+                $this->getServiceLocator()->get('logService')->log(LogService::LEVEL_ERROR,
+                    $this->getLogCode().'_rdta_asi',
+                    array('attribute sets'=>$this->attributeSets, 'product class'=>$productClass)
+                );
+/* ToDo: Remove this line after fixing the problem */ $restData['attribute_set_id'] = 4;
             }
 
             if (!isset($customAttributes['special_price'])) {
