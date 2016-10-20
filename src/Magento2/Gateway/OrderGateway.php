@@ -535,13 +535,27 @@ class OrderGateway extends AbstractGateway
                 $success = TRUE;
                 $needsUpdate = FALSE;
             }else{
-                $this->getServiceLocator()->get('logService')->log($logLevel,
-                    $this->getLogCode().'_unlink'.$logCodeSuffix,
-                        'Unlinked order '.$uniqueId.$logMessageSuffix,
-                        array('sku'=>$uniqueId),
-                        array('node'=>$this->_node, 'entity'=>$existingEntity)
+                $logData =  array('sku'=>$uniqueId, 'local id');
+                $storedLocalId = $this->_entityService->getLocalId($this->_node->getNodeId(), $existingEntity);
+
+                if ($storedLocalId && $localId != $storedLocalId) {
+                    $logCode = $this->getLogCode().'_rlnk';
+                    $message = 'Re-linked';
+                    $logData['stored local id'] = $storedLocalId;
+                    $this->_entityService->unlinkEntity($this->_node->getNodeId(), $existingEntity);
+                }elseif (!$storedLocalId) {
+                    $logCode = $this->getLogCode().'_link';
+                    $message = 'Linked';
+                }
+
+                if (isset($logCode)) {
+                    $this->getServiceLocator()->get('logService')
+                        ->log($logLevel, $logCode.$logCodeSuffix, $message.' order '.$uniqueId.$logMessageSuffix,
+                        $logData, array('node' => $this->_node, 'entity' => $existingEntity)
                     );
-                $this->_entityService->linkEntity($this->_node->getNodeId(), $existingEntity, $localId);
+
+                    $this->_entityService->linkEntity($this->_node->getNodeId(), $existingEntity, $localId);
+                }
             }
         }else{
             $attributesNotToUpdate = array('grand_total');
