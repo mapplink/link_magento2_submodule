@@ -967,6 +967,7 @@ $storeIds = array(current($storeIds));
             }
             $customAttributes['url_key'] = array('attribute_code'=>'url_key', 'value'=>$urlKey);
 
+            $productClass = NULL;
             foreach ($this->attributeSets as $setId=>$set) {
                 $setName = $set['attribute_set_name'];
                 $productClass = $product->getData('product_class', 'default');
