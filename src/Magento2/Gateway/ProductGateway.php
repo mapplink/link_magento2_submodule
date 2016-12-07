@@ -123,7 +123,10 @@ class ProductGateway extends AbstractGateway
         603=>'Basic Grey', 604=>'Black Foil', 605=>'Blackadder', 606=>'Blackbird', 607=>'Charred', 608=>'Eclipse', 609=>'Emerald',
         610=>'Greenacres', 611=>'Iceberg', 612=>'Lacquer', 613=>'Natural', 614=>'Negative', 615=>'Phantom', 616=>'Positive',
         617=>'Smudge', 618=>'Volcanic', 619=>'White Dove', 620=>'Zinc', 621=>'Blue/Green', 622=>'Green/Blue',
-        623=>'Orange/Green');
+        623=>'Orange/Green', 624=>'Playlist', 625=>'Fine Navy Stripe', 626=>'POW', 627=>'Blue Check', 628=>'Double Pinstripe',
+        629=>'Houndstooth', 630=>'Pinstripe Mix', 631=>'Hands', 632=>'Citron', 633=>'Classical', 634=>'Blushing',
+        635=>'John x Yoko', 636=>'Charcoal/Putty', 637=>'Charcoal/Yellow', 638=>'Navy/Putty', 639=>'Blue/Charcoal',
+        640=>'Joy', 641=>'Nirvana', 642=>'Record', 643=>'Bat Skeleton', 644=>'Love Song', 645=>'Jane', 646=>'Kiss');
 
     // ToDo: Move mapping to config
     /** @var array self::$sizeById */
