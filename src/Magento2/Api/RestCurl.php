@@ -128,7 +128,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
         $cacheControl = 'cache-control: no-cache';
 
         foreach ($headers as $line) {
-            if (strpos($line, strstr($cacheControl, ':').':') !== FALSE) {
+            if (strpos($line, strstr($cacheControl, ':', TRUE).':') !== FALSE) {
                 $cacheControl = FALSE;
                 break;
             }
