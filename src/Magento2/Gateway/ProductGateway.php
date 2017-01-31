@@ -127,7 +127,7 @@ class ProductGateway extends AbstractGateway
         629=>'Houndstooth', 630=>'Pinstripe Mix', 631=>'Hands', 632=>'Citron', 633=>'Classical', 634=>'Blushing',
         635=>'John x Yoko', 636=>'Charcoal/Putty', 637=>'Charcoal/Yellow', 638=>'Navy/Putty', 639=>'Blue/Charcoal',
         640=>'Joy', 641=>'Nirvana', 642=>'Record', 643=>'Bat Skeleton', 644=>'Love Song', 645=>'Jane', 646=>'Kiss',
-        647=>'Black/Orange');
+        647=>'Black/Orange', 648=>'Charcoal Stripe');
 
     // ToDo: Move mapping to config
     /** @var array self::$sizeById */
