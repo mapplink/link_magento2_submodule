@@ -69,7 +69,7 @@ class Node extends AbstractNode
 
     /**
      * Return a data array of all store views
-     * @return array $this->storeViews
+     * @return array $storeViews
      */
     public function getStoreViews()
     {
@@ -86,6 +86,9 @@ class Node extends AbstractNode
                     foreach ($response as $storeView) {
                         $this->storeViews[$storeView['id']] = $storeView;
                     }
+                    $storeViews = $this->storeViews;
+                }else{
+                    $storeViews = array();
                 }
 
                 $this->getServiceLocator()->get('logService')
@@ -96,9 +99,11 @@ class Node extends AbstractNode
                         array('node'=>$this)
                     );
             }
+        }else{
+            $storeViews = $this->storeViews;
         }
 
-        return $this->storeViews;
+        return $storeViews;
     }
 
     /**
