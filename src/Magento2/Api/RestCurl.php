@@ -325,7 +325,7 @@ abstract class RestCurl implements ServiceLocatorAwareInterface
             $logData = array('uri'=>$uri, 'headers'=>$headersArray, 'method'=>$this->requestType,
                 'options'=>$this->clientOptions, 'parameters'=>$parameters, 'response'=>$response);
 
-            if (is_array($response) && array_key_exists('items', $response)) {
+            if (is_array($response) && array_key_exists('items', $response) && count($parameters) > 0) {
                 $response = $response['items'];
 
             }elseif (isset($response['message'])) {
